@@ -1,0 +1,568 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{# admission_form.html
+   - Expects context: { form: AdmissionForm instance, plans: queryset of MembershipPlan }
+   - The template writes the chosen plan id into the ModelChoiceField `form.plan` (hidden select)
+   - Keep your video and image src unchanged.
+#}
+
+{% block title %}Join Gym-SHIM — Admission{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<meta name="description" content="Join Gym-SHIM — admission form and membership selection">
+{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --bg:#080808;
+    --muted:#bfbfc4;
+    --accent:#ff6a00;
+    --accent-2:#ffd366;
+    --card: rgba(255,255,255,0.02);
+    --glass: rgba(255,255,255,0.03);
+    --radius:14px;
+    --maxw:1200px;
+  }
+  main { background: transparent !important; }
+
+  /* Layout */
+  .admission-viewport { max-width: var(--maxw); margin: 48px auto; padding: 18px; }
+  .grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; }
+  @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+  /* Card */
+  .admission-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: var(--radius);
+    padding: 22px;
+    border:1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 18px 60px rgba(0,0,0,0.6);
+    color:#eef1f4;
+  }
+
+  /* Video background wrapper (keep your media paths intact) */
+  .video-bg-wrapper {
+    position: fixed; inset:0; width:100%; height:100%; overflow:hidden; z-index:-3;
+  }
+  .bg-video { width:100%; height:100%; object-fit:cover; }
+  .overlay { position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.55)); z-index:-2; backdrop-filter: blur(2px); }
+
+  /* Form layout */
+  .section-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; }
+  .section-head h1 { font-family:'Poppins',sans-serif; margin:0; font-size: clamp(20px,2.8vw,28px); }
+  .small-muted { color:var(--muted); font-size:0.95rem; }
+
+  .form-row { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; align-items:flex-start; }
+  .col-6 { flex:1 1 calc(50% - 12px); min-width:200px; }
+  .col-4 { flex:1 1 calc(33.333% - 12px); min-width:140px; }
+  .col-12 { flex:1 1 100%; }
+
+  label.form-label { display:block; margin-bottom:6px; font-weight:600; color:#e6e6e6; }
+  .form-control {
+    width:100%; padding:10px 12px; border-radius:10px; background: rgba(0, 0, 0, 0.03);
+    border:1px solid rgba(255,255,255,0.03); color:#ffffff; outline:none;
+  }
+  .form-control:focus { box-shadow: 0 10px 30px rgba(0,0,0,0.6); border-color: rgba(255,255,255,0.06); transform: translateY(-1px); }
+
+  /* Plan cards */
+  .plans-shell { margin:12px 0 18px; }
+  .plans-grid { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start; }
+  .plan-card {
+    width:260px; background:var(--card); border-radius:12px; padding:16px; border:1px solid rgba(255,255,255,0.03);
+    transition: transform .22s, box-shadow .22s, border-color .22s; cursor:pointer; position:relative;
+  }
+  .plan-card:hover { transform: translateY(-6px); }
+  .plan-card.active { border-color: var(--accent); box-shadow: 0 22px 60px rgba(0,0,0,0.6); }
+  .plan-name { font-weight:800; font-size:1.05rem; }
+  .plan-price { font-weight:900; font-size:1.4rem; color:var(--accent); }
+  .plan-perks { color:var(--muted); margin-top:8px; font-size:0.95rem; min-height:54px; }
+  .popular-pill { position:absolute; left:14px; top:12px; background:linear-gradient(90deg,var(--accent),var(--accent-2)); padding:6px 10px; border-radius:999px; color:#111; font-weight:900; font-size:0.75rem; }
+
+  .plan-actions { display:flex; gap:8px; margin-top:12px; }
+  .btn-choose { background: linear-gradient(180deg,var(--accent),var(--accent-2)); border:0; padding:8px 12px; border-radius:10px; font-weight:800; cursor:pointer; color:#111; }
+  .btn-details { background:transparent; border:1px solid rgba(255,255,255,0.04); padding:8px 12px; border-radius:10px; color:var(--muted); cursor:pointer; }
+
+  /* Summary */
+  .summary { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:10px; padding:16px; border:1px solid rgba(255,255,255,0.04); }
+  .summary h3 { margin:0 0 8px 0; }
+  .summary .line { display:flex; justify-content:space-between; margin:10px 0; color:var(--muted); }
+  .total { font-weight:900; color:var(--accent); font-size:1.4rem; }
+
+  .pay-btn { width:100%; padding:12px; border-radius:10px; border:0; background:linear-gradient(180deg,var(--accent),var(--accent-2)); color:#000; font-weight:900; cursor:pointer; margin-top:12px; }
+
+  .field-error { color:#ffb3b3; font-size:0.92rem; margin-top:6px; }
+
+  /* modal */
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:1400; }
+  .modal-backdrop.open { display:flex; }
+  .modal { width:min(900px,94%); background:linear-gradient(180deg,#0f0f10,#050506); border-radius:12px; padding:22px; color:#eef1f4; border:1px solid rgba(255,255,255,0.04); }
+
+  @media (max-width:700px){ .plan-card { width:100%; } }
+</style>
+
+<div class="video-bg-wrapper" aria-hidden="true">
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="{% static 'body/video/form_bg.mp4' %}" type="video/mp4">
+  </video>
+  <div class="overlay"></div>
+</div>
+
+<div class="admission-viewport">
+  <div class="admission-card" role="region" aria-labelledby="admissionHeading">
+
+    <div class="section-head">
+      <div>
+        <h1 id="admissionHeading">Join Gym-SHIM</h1>
+        <div class="small-muted">Choose a plan, fill your details and continue to pay securely.</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="small-muted">Already applied? <a href="{% url 'body:contact' %}">Contact us</a></div>
+        <div class="small-muted" style="margin-top:6px;">Have coupon? enter it on payment page.</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: FORM -->
+      <div>
+        <form method="POST" enctype="multipart/form-data" id="admissionForm" action="{% url 'body:admission_form' %}" novalidate>
+          {% csrf_token %}
+          {# Render hidden version of select fields — we'll keep the real widget so Django form works #}
+          <div style="display:none;">
+            {# render actual form.plan and duration_months inputs so Django sees them #}
+            {{ form.plan|attr:"id:id_plan" }}
+            {{ form.duration_months|attr:"id:id_duration_months" }}
+            {# keep upi_id as real field too #}
+            {{ form.upi_id|attr:"id:id_upi_id" }}
+          </div>
+
+          <div class="form-row">
+            <div class="col-6">
+              <label class="form-label" for="id_first_name">First name</label>
+              {{ form.first_name|add_class:"form-control" }}
+              {% for err in form.first_name.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </div>
+
+            <div class="col-6">
+              <label class="form-label" for="id_last_name">Last name</label>
+              {{ form.last_name|add_class:"form-control" }}
+              {% for err in form.last_name.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-6">
+              <label class="form-label" for="id_email">Email</label>
+              {{ form.email|add_class:"form-control" }}
+              {% for err in form.email.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </div>
+
+            <div class="col-6">
+              <label class="form-label" for="id_phone">Phone</label>
+              {{ form.phone|add_class:"form-control" }}
+              {% for err in form.phone.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-4">
+              <label class="form-label" for="id_date_of_birth">Date of birth</label>
+              {{ form.date_of_birth|add_class:"form-control" }}
+              {% for err in form.date_of_birth.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </div>
+
+            <div class="col-4">
+              <label class="form-label" for="id_start_date">Preferred start date</label>
+              {{ form.start_date|add_class:"form-control" }}
+              {% for err in form.start_date.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </div>
+
+            <div class="col-4">
+              <label class="form-label" for="id_duration_months">Duration (months)</label>
+              {{ form.duration_months|add_class:"form-control" }}
+              {% for err in form.duration_months.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-12">
+              <label class="form-label" for="id_address">Address</label>
+              {{ form.address|add_class:"form-control"|attr:"rows:2" }}
+              {% for err in form.address.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </div>
+          </div>
+
+        
+          <div class="form-row">
+            <div class="col-6">
+              <label class="form-label">Gender</label>
+              <select id="id_gender" name="gender" class="form-control">
+                <option value="">Prefer not to say</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+              <div class="small-muted" style="margin-top:6px;"></div>
+            </div>
+
+            <div class="col-6">
+              <label class="form-label">Emergency contact</label>
+              <div style="display:flex;gap:8px;">
+                {{ form.emergency_contact_name|add_class:"form-control" }}
+                {{ form.emergency_contact_phone|add_class:"form-control" }}
+              </div>
+            </div>
+          </div>
+
+          <!-- PLAN SELECTOR -->
+          <div class="form-row">
+            <div class="col-12">
+              <label class="form-label">Choose a membership plan</label>
+
+              <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+                <div class="small-muted">Billing</div>
+                <div style="display:flex;gap:8px;">
+                  <button type="button" class="billing-btn active btn-compact" data-mode="month">Monthly</button>
+                  <button type="button" class="billing-btn btn-compact" data-mode="annual">Annual</button>
+                </div>
+              </div>
+
+              <div class="plans-shell">
+                <div class="plans-grid" id="plansGrid" role="list">
+                  {% comment %} Render plans from DB. If none, fallback UI defined in JS will pick sample.{% endcomment %}
+                  {% for plan in plans %}
+                    <article class="plan-card" role="listitem" tabindex="0"
+                             data-id="{{ plan.id }}"
+                             data-slug="{{ plan.slug }}"
+                             data-name="{{ plan.name|escapejs }}"
+                             data-month="{{ plan.price_month }}"
+                             data-annual="{{ plan.price_annual }}"
+                             data-duration="{{ plan.duration_days }}"
+                             data-perks="{{ plan.perks|escapejs }}">
+                      {% if plan.is_popular %}
+                        <div class="popular-pill" aria-hidden="true">POPULAR</div>
+                      {% endif %}
+                      <div class="plan-name">{{ plan.name }}</div>
+                      <div class="plan-price">₹<span class="price-num">{{ plan.price_month }}</span> <small class="price-period">/mo</small></div>
+                      <div class="plan-perks">{{ plan.perks|truncatechars:160|linebreaksbr }}</div>
+                      <div class="plan-actions" aria-hidden="true">
+                        <button type="button" class="btn-choose" data-action="choose">Choose Plan</button>
+                        <button type="button" class="btn-details" data-action="details">View Details</button>
+                      </div>
+                    </article>
+                  {% empty %}
+                    {# If no plans exist in DB, show design-time fallback so visitors don't see emptiness #}
+                    <article class="plan-card" data-id="0" data-slug="basic" data-name="Basic" data-month="999" data-annual="9590" data-duration="30" data-perks="Gym access during staffed hours\nFree Wi-Fi\nLocker access">
+                      <div class="plan-name">Basic</div>
+                      <div class="plan-price">₹<span class="price-num">999</span> <small class="price-period">/mo</small></div>
+                      <div class="plan-perks">Gym access during staffed hours<br/>Free Wi-Fi<br/>Locker access</div>
+                      <div class="plan-actions">
+                        <button type="button" class="btn-choose" data-action="choose">Choose Plan</button>
+                        <button type="button" class="btn-details" data-action="details">View Details</button>
+                      </div>
+                    </article>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <p style="margin-top:8px;">Selected: <strong id="selectedPlanLabel">—</strong></p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-12">
+              <label class="form-label" for="id_fitness_goals">Fitness goals</label>
+              {{ form.fitness_goals|add_class:"form-control"|attr:"rows:3" }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-12">
+              <label class="form-label" for="id_medical_conditions">Medical conditions (optional)</label>
+              {{ form.medical_conditions|add_class:"form-control"|attr:"rows:2" }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-6">
+              <label class="form-label" for="id_photo">Upload photo (optional)</label>
+              {{ form.photo|add_class:"form-control" }}
+            </div>
+            <div class="col-6">
+              <label class="form-label" for="id_upi_id">Your UPI ID (optional)</label>
+              {{ form.upi_id|add_class:"form-control" }}
+            </div>
+          </div>
+
+          <div class="form-row" style="align-items:center;">
+            <div class="col-12">
+              <label style="display:flex;align-items:center;gap:10px;">
+                {{ form.agreed_terms|add_class:"" }} <span class="small-muted" style="margin-left:6px">I agree to the terms & conditions</span>
+              </label>
+              {% for err in form.agreed_terms.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </div>
+          </div>
+
+          {# Hidden calculated amount (optional; server MUST verify!) #}
+          <input type="hidden" id="calculated_amount" name="calculated_amount" value="0.00">
+
+          {# fallback submit — hidden because primary action is on summary panel #}
+          <div style="margin-top:14px; display:none;">
+            <button type="submit" class="btn-choose">Submit — fallback</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- RIGHT: SUMMARY + Proceed -->
+      <aside>
+        <div class="summary" aria-labelledby="summaryHeading">
+          <h3 id="summaryHeading">Payment summary</h3>
+
+          <div class="line"><div class="small-muted">Plan</div><div id="summaryPlan">—</div></div>
+          <div class="line"><div class="small-muted">Billing</div><div id="summaryBilling">Monthly</div></div>
+          <div class="line"><div class="small-muted">Duration</div><div id="summaryDuration">1 month</div></div>
+
+          <hr style="border-color: rgba(255,255,255,0.04); margin:12px 0;">
+
+          <div class="line"><div class="small-muted">Subtotal</div><div id="summarySubtotal">₹0</div></div>
+          <div class="line"><div class="small-muted">Discount</div><div id="summaryDiscount">₹0</div></div>
+
+          <div class="line" style="margin-top:12px"><div class="small-muted">Total</div><div id="summaryTotal" class="total">₹0</div></div>
+
+          <button id="continueToPay" class="pay-btn" disabled aria-disabled="true">Continue to payment</button>
+          <div class="small-muted" style="margin-top:8px;">You will be redirected to the payment page after saving the admission.</div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<!-- PLAN DETAILS MODAL -->
+<div id="planModal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal" role="document" aria-labelledby="modalTitle">
+    <button class="close" id="modalClose" aria-label="Close details">✕</button>
+    <h2 id="modalTitle">Plan details</h2>
+    <p id="modalPrice" style="font-weight:800;margin-top:6px"></p>
+    <div id="modalPerks" style="margin-top:12px;color:var(--muted)"></div>
+    <div style="margin-top:18px;text-align:right">
+      <button id="modalChoose" class="btn-choose">Choose this plan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+function toNumber(v){ const n = Number(String(v).replace(/[^0-9\.\-]/g,'')); return isNaN(n)?0:n; }
+function formatINR(n){ try { return '₹'+Number(n).toLocaleString('en-IN'); } catch(e){ return '₹'+n; } }
+
+/* ---------- DOM refs ---------- */
+const plansGrid = document.getElementById('plansGrid');
+const billingBtns = document.querySelectorAll('.billing-btn');
+const hiddenPlanSelect = document.getElementById('id_plan'); // rendered by Django but hidden
+const hiddenDuration = document.getElementById('id_duration_months');
+const calculatedAmountInput = document.getElementById('calculated_amount');
+
+const selectedLabel = document.getElementById('selectedPlanLabel');
+const summaryPlan = document.getElementById('summaryPlan');
+const summaryBilling = document.getElementById('summaryBilling');
+const summaryDuration = document.getElementById('summaryDuration');
+const summarySubtotal = document.getElementById('summarySubtotal');
+const summaryDiscount = document.getElementById('summaryDiscount');
+const summaryTotal = document.getElementById('summaryTotal');
+const continueToPay = document.getElementById('continueToPay');
+
+const planModal = document.getElementById('planModal');
+const modalClose = document.getElementById('modalClose');
+const modalTitle = document.getElementById('modalTitle');
+const modalPrice = document.getElementById('modalPrice');
+const modalPerks = document.getElementById('modalPerks');
+const modalChoose = document.getElementById('modalChoose');
+
+let planCards = Array.from(document.querySelectorAll('.plan-card'));
+let activeBilling = 'month';
+let selectedPlan = null;
+
+/* ---------- Billing toggle ---------- */
+function setBillingMode(mode){
+  activeBilling = mode;
+  billingBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode || b.dataset.billing === mode));
+  summaryBilling.textContent = (mode === 'month') ? 'Monthly' : 'Annual';
+  planCards.forEach(c => {
+    const p = (mode === 'month') ? c.dataset.month : c.dataset.annual;
+    const priceNum = c.querySelector('.price-num');
+    if(priceNum) priceNum.textContent = p;
+    const period = c.querySelector('.price-period');
+    if(period) period.textContent = (mode === 'month')? '/mo' : '/yr';
+  });
+  recalcSummary();
+}
+billingBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode || btn.dataset.billing || btn.getAttribute('data-mode') || btn.getAttribute('data-billing');
+    setBillingMode(mode || 'month');
+  });
+});
+
+/* ---------- Plan card interactions ---------- */
+function activateCard(card){
+  planCards.forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+
+  selectedPlan = {
+    id: card.dataset.id ? String(card.dataset.id) : null,
+    name: card.dataset.name || card.querySelector('.plan-name')?.innerText || 'Plan',
+    price_month: toNumber(card.dataset.month),
+    price_annual: toNumber(card.dataset.annual),
+    duration_days: toNumber(card.dataset.duration),
+    perks: card.dataset.perks || ''
+  };
+
+  // populate hidden Django form inputs
+  if(hiddenPlanSelect){
+    // if the select uses string values, set that. If your ModelChoice uses ids, we set the id.
+    try { hiddenPlanSelect.value = selectedPlan.id; } catch(e) {}
+  }
+  if(hiddenDuration){
+    const months = Math.max(1, Math.round((selectedPlan.duration_days || 30) / 30));
+    hiddenDuration.value = months;
+  }
+
+  // update UI
+  const price = (activeBilling === 'month') ? selectedPlan.price_month : selectedPlan.price_annual || (selectedPlan.price_month * 12);
+  selectedLabel.textContent = `${selectedPlan.name} — ${formatINR(price)}`;
+  summaryPlan.textContent = selectedPlan.name;
+  recalcSummary();
+}
+
+planCards.forEach(card => {
+  card.addEventListener('click', (ev) => {
+    // ignore if clicked a button inside card — let button handlers do the work
+    if(ev.target.closest('button')) return;
+    activateCard(card);
+  });
+  // keyboard
+  card.addEventListener('keydown', (e) => { if(e.key === 'Enter') activateCard(card); });
+});
+
+// handle choose/details buttons
+plansGrid.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('button');
+  if(!btn) return;
+  const card = btn.closest('.plan-card');
+  if(!card) return;
+  const action = btn.dataset.action || btn.getAttribute('data-action');
+  if(action === 'choose'){
+    activateCard(card);
+    continueToPay.focus();
+  } else if(action === 'details'){
+    openModalForCard(card);
+  }
+});
+
+/* ---------- Modal ---------- */
+function openModalForCard(card){
+  modalTitle.textContent = card.dataset.name || card.querySelector('.plan-name')?.innerText || 'Plan';
+  const price = (activeBilling === 'month') ? (card.dataset.month || '') : (card.dataset.annual || '');
+  modalPrice.textContent = price ? formatINR(price) + (activeBilling === 'month' ? ' / month' : ' / year') : '';
+  const perksRaw = card.dataset.perks || '';
+  if(perksRaw.includes('\\n') || perksRaw.includes('\n')){
+    modalPerks.innerHTML = '<ul>' + perksRaw.replace(/\\n/g,'\n').split(/\n+/).filter(Boolean).map(p=>`<li>${p}</li>`).join('') + '</ul>';
+  } else {
+    modalPerks.innerHTML = card.querySelector('.plan-perks') ? card.querySelector('.plan-perks').innerHTML : (perksRaw || '');
+  }
+  modalChoose.onclick = () => { activateCard(card); closeModal(); window.scrollTo({top:0,behavior:'smooth'}); };
+  planModal.classList.add('open'); planModal.setAttribute('aria-hidden','false');
+}
+function closeModal(){ planModal.classList.remove('open'); planModal.setAttribute('aria-hidden','true'); modalChoose.onclick = null; }
+modalClose.addEventListener('click', closeModal);
+planModal.addEventListener('click', (e)=> { if(e.target === planModal) closeModal(); });
+document.addEventListener('keydown', (e)=> { if(e.key === 'Escape') closeModal(); });
+
+/* ---------- Summary calc ---------- */
+function recalcSummary(){
+  if(!selectedPlan){
+    if(planCards.length) activateCard(planCards[0]);
+    else return;
+  }
+  const mode = activeBilling;
+  const months = Math.max(1, Math.round((selectedPlan.duration_days || 30) / 30));
+  const subtotal = (mode === 'month') ? selectedPlan.price_month * months : (selectedPlan.price_annual || (selectedPlan.price_month * 12));
+  let discount = 0;
+  if(mode !== 'month'){
+    const base = selectedPlan.price_month * 12;
+    discount = Math.max(0, base - (selectedPlan.price_annual || base));
+  }
+  const taxRate = 0; // keep server-side verification; avoid jurisdiction tax assumptions
+  const tax = +(subtotal * taxRate);
+  const total = +(subtotal - discount + tax);
+
+  summarySubtotal.textContent = formatINR(subtotal);
+  summaryDiscount.textContent = discount > 0 ? `- ${formatINR(discount)}` : '₹0';
+  summaryTotal.textContent = formatINR(total);
+
+  calculatedAmountInput.value = Number(total).toFixed(2);
+
+  continueToPay.disabled = !(selectedPlan && total > 0);
+  continueToPay.setAttribute('aria-disabled', continueToPay.disabled ? 'true' : 'false');
+}
+
+/* ---------- Continue / submit ---------- */
+continueToPay.addEventListener('click', (ev) => {
+  const form = document.getElementById('admissionForm');
+  if(!form) return;
+
+  // minimal client validation
+  const fname = document.getElementById('id_first_name');
+  const email = document.getElementById('id_email');
+  const phone = document.getElementById('id_phone');
+  const address = document.getElementById('id_address');
+  const agreed = document.getElementById('id_agreed_terms');
+
+  const missing = [];
+  if(!fname || !fname.value.trim()) missing.push('First name');
+  if(!email || !email.value.trim()) missing.push('Email');
+  if(!phone || !phone.value.trim()) missing.push('Phone');
+  if(!address || !address.value.trim()) missing.push('Address');
+  if(!agreed || !agreed.checked) missing.push('Accept terms');
+
+  if(missing.length){
+    alert('Please complete required fields: ' + missing.join(', '));
+    // focus first missing input
+    if(!fname.value.trim()) fname.focus();
+    else if(!email.value.trim()) email.focus();
+    else if(!phone.value.trim()) phone.focus();
+    else if(!address.value.trim()) address.focus();
+    else if(!agreed.checked) agreed.focus();
+    return;
+  }
+
+  // final safety check: ensure plan selected
+  if(!selectedPlan || !calculatedAmountInput.value || Number(calculatedAmountInput.value) <= 0){
+    alert('Please choose a valid membership plan.');
+    return;
+  }
+
+  // disable to prevent double-click
+  continueToPay.disabled = true;
+  continueToPay.textContent = 'Saving application…';
+
+  // Submit the admission form to your admission view (server will save and redirect to payment_form)
+  form.submit();
+});
+
+/* ---------- Startup ---------- */
+if(planCards.length) activateCard(planCards[0]);
+else {
+  // nothing in DOM (very unlikely) — disable continue
+  continueToPay.disabled = true;
+}
+
+/* Helpful accessibility: make billing buttons keyboard-activable */
+billingBtns.forEach(btn => btn.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); } }));
+</script>
+
+{% endblock %}

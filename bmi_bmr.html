@@ -1,0 +1,959 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}BMI & BMR — Pro Calculator | Gym‑SHIM{% endblock %}
+
+{% block extra_head %}
+<style>
+/* =========================================================
+   GYM‑SHIM — BMI & BMR PRO CALC
+   Focus: professional clarity + delightful animations
+   ========================================================= */
+
+/* ---------- Base Utilities ---------- */
+:root{
+  --bg:#080808;
+  --text:#e9eaee;
+  --muted:#bcbec4;
+  --accent:#ffb400;
+  --accent-2:#ff7a00;
+  --good:#2bd67b;
+  --ok:#58c4ff;
+  --warn:#ffd166;
+  --bad:#ff5c5c;
+  --glass: rgba(255,255,255,.05);
+  --glass-2: rgba(255,255,255,.07);
+  --maxw:1200px;
+  --radius:16px;
+  --shadow-xl: 0 24px 80px rgba(0,0,0,.65);
+  --shadow-md: 0 10px 30px rgba(0,0,0,.45);
+}
+
+.calc-root{
+  position:relative; isolation:isolate;
+  padding: 120px 0 80px;
+}
+
+.calc-container{
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ---------- Hero heading ---------- */
+.hero{
+  position:relative;
+  margin: 10px 0 24px;
+  text-align:center;
+}
+.hero h1{
+  margin:0;
+  font-weight:800;
+  letter-spacing:.4px;
+  font-size: clamp(1.9rem, 3.6vw, 3rem);
+  line-height:1.1;
+}
+.hero p{
+  color:var(--muted);
+  margin:10px auto 0;
+  max-width: 900px;
+}
+
+/* ---------- Ambient background (canvas + fog) ---------- */
+.ambient{
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events:none;
+}
+.ambient .glow{
+  position:absolute; filter: blur(60px);
+  width:420px; height:420px; border-radius:50%;
+  opacity:.18; mix-blend-mode:screen;
+  background: radial-gradient(circle at 50% 50%, #ffb400 0 40%, transparent 70%);
+  transform: translate(-30%, -20%);
+}
+.ambient .glow.g2{
+  left:auto; right:-10%; top:18%;
+  background: radial-gradient(circle at 50% 50%, #ff7a00 0 40%, transparent 70%);
+  opacity:.14; filter: blur(80px);
+}
+.ambient .fog{
+  position:absolute; inset: -20% -20% -10% -20%;
+  background: radial-gradient(60% 40% at 30% 40%, rgba(255,255,255,.05), transparent 60%),
+              radial-gradient(60% 40% at 70% 60%, rgba(255,255,255,.035), transparent 60%);
+  opacity:.25;
+}
+
+/* ---------- Panel Grid ---------- */
+.panel-grid{
+  display:grid; gap:26px; align-items:start;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 980px){
+  .panel-grid{ grid-template-columns: 1fr; }
+}
+
+/* ---------- Panel Card ---------- */
+.panel{
+  position:relative;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+  border: 1px solid rgba(255,255,255,.09);
+  box-shadow: var(--shadow-xl);
+  border-radius: var(--radius);
+  overflow:hidden;
+}
+.panel::before{
+  content:"";
+  position:absolute; inset:-1px;
+  border-radius: inherit;
+  background: radial-gradient(1200px 200px at var(--mx,30%) -20%, rgba(255,255,255,.08), transparent 60%);
+  opacity:.4; pointer-events:none;
+}
+.panel-header{
+  padding: 18px 18px 10px;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), transparent);
+}
+.panel-header h2{
+  font-size: 1.25rem; margin:0; color: var(--accent);
+  letter-spacing:.3px;
+}
+.panel-header .sub{
+  color:var(--muted); font-size:.92rem;
+}
+.panel-body{
+  padding: 18px;
+}
+
+/* ---------- Form ---------- */
+.form-grid{
+  display:grid; gap: 14px; grid-template-columns: repeat(2, 1fr);
+}
+@media (max-width:700px){ .form-grid{ grid-template-columns: 1fr; } }
+.field{ display:flex; flex-direction:column; gap:6px; }
+.field label{ font-weight:700; color:var(--muted); font-size:.95rem; }
+.field .hint{ font-size:.83rem; color:var(--muted); }
+.input,
+select{
+  width:100%;
+  padding:12px 14px; border-radius:12px;
+  border:1px solid rgba(255,255,255,.08);
+  background: rgba(0,0,0,.35);
+  color:var(--text); font-size:15px;
+  transition: border-color .2s, box-shadow .2s, transform .05s;
+}
+.input::placeholder{ color:#cfd1d7; opacity:.6; }
+.input:focus, select:focus{
+  outline:none; border-color: rgba(255,186,64,.5);
+  box-shadow: 0 10px 30px rgba(255,153,0,.15);
+}
+.input.error{ border-color: var(--bad); }
+
+.actions{
+  display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+  margin-top:6px;
+}
+.btn{
+  --h:46px;
+  display:inline-grid; place-items:center; height:var(--h);
+  padding:0 22px; border-radius:999px; cursor:pointer; user-select:none;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow: var(--shadow-md);
+  position:relative; overflow:hidden;
+}
+.btn .shine{
+  position:absolute; inset:0; opacity:0; pointer-events:none;
+  background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.28) 0 16%, transparent 22%);
+  mix-blend-mode:screen; transition: opacity .18s;
+}
+.btn:hover .shine{ opacity:1; }
+.btn-primary{
+  color:#0b0b0b; font-weight:900; letter-spacing:.3px;
+  border:1px solid rgba(255,200,120,.2);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+.btn-ghost{ color:var(--muted); background:transparent; }
+
+.full{ grid-column: 1 / -1; }
+
+/* ---------- Results ---------- */
+.results{ margin-top:12px; display:none; }
+.results.show{ display:block; }
+.metrics{
+  display:grid; gap:12px; grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width:940px){ .metrics{ grid-template-columns: 1fr; } }
+.metric{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius:12px; padding:12px;
+}
+.metric .label{ color:var(--muted); font-size:.9rem; }
+.metric .value{ font-size:1.35rem; font-weight:800; color:var(--accent); }
+.metric .note{ color:var(--muted); font-size:.9rem; margin-top:6px; }
+
+.comparison{
+  margin-top:14px; border-top:1px dashed rgba(255,255,255,.08); padding-top:12px;
+}
+.comp-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.comp-desc{ color:var(--muted); }
+.delta{ color:var(--accent-2); font-weight:800; }
+.bar{ height:12px; border-radius:999px; background: rgba(255,255,255,.08); overflow:hidden; }
+.fill{ height:100%; width:0%; background: linear-gradient(90deg, var(--good), #ffd166 55%, var(--bad)); }
+
+.advice{
+  margin-top:14px; display:grid; gap:12px;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+@media (max-width:980px){ .advice{ grid-template-columns: 1fr; } }
+.advice-card{
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.05));
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius:12px; padding:12px;
+}
+.advice-card h4{ margin:0 0 6px; color:var(--accent); }
+.advice-card p{ margin:0; color:#eef0f4; line-height:1.55; }
+.advice-card ul{ margin:6px 0 0 18px; color:#eef0f4; line-height:1.55; }
+
+/* ---------- Micro‑status badges ---------- */
+.badges{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.badge{
+  font-size:.82rem; color:#121212; font-weight:800;
+  padding:6px 10px; border-radius:999px; letter-spacing:.2px;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.badge.good{ background: var(--good); }
+.badge.mid{ background: var(--warn); color:#1a1a1a; }
+.badge.bad{ background: var(--bad); }
+
+/* ---------- Toast / inline alerts ---------- */
+.alert{
+  display:none; margin:10px 0 0; padding:10px 12px;
+  border-radius:10px; font-size:.95rem;
+  border:1px solid rgba(255,255,255,.08);
+}
+.alert.show{ display:block; }
+.alert.error{ background: linear-gradient(180deg, rgba(255,0,0,.06), rgba(255,0,0,.03)); border-color: rgba(255,0,0,.28); color:#ffdede; }
+
+/* ---------- Helpers ---------- */
+.reveal{ opacity:0; transform: translateY(10px); transition: .6s ease; }
+.reveal.show{ opacity:1; transform:none; }
+
+/* ---------- 3D hover parallax on panels ---------- */
+.panel:hover{
+  transform: translateY(-6px);
+  transition: transform .28s ease;
+}
+
+/* ---------- Responsive fine-tuning ---------- */
+@media (max-width:520px){
+  .actions{ justify-content: space-between; }
+}
+
+/* ---------- Button ripples (CSS var receives JS) ---------- */
+.btn::after{
+  content:"";
+  position:absolute; left:var(--rx,50%); top:var(--ry,50%);
+  transform:translate(-50%,-50%) scale(0);
+  width:1px; height:1px; border-radius:50%;
+  background: radial-gradient(circle, rgba(255,255,255,.85) 0 30%, transparent 60%);
+  opacity:.0; transition: transform .6s ease, opacity .6s ease;
+}
+.btn.ripple::after{
+  transform:translate(-50%,-50%) scale(22);
+  opacity:.25;
+}
+
+/* ---------- Field inline caption (unit) ---------- */
+.field .unit-row{
+  display:flex; gap:10px; align-items:center;
+}
+.unit{
+  color:#121212; background: #ededee; border-radius:8px; padding:6px 10px; font-weight:700; font-size:.8rem;
+}
+
+/* ---------- Mini legend stripes ---------- */
+.legend{
+  margin-top:8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+}
+.legend .stripe{
+  width:52px; height:10px; border-radius:6px; background: linear-gradient(90deg, var(--good), #ffd166 55%, var(--bad));
+  border: 1px solid rgba(255,255,255,.1);
+}
+.legend .lab{ color:var(--muted); font-size:.85rem; }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calc-root">
+  <!-- Ambient visual background -->
+  <div class="ambient" aria-hidden="true">
+    <div class="glow"></div>
+    <div class="glow g2"></div>
+    <div class="fog"></div>
+    <canvas id="stars" width="1920" height="1080"></canvas>
+  </div>
+
+  <div class="calc-container">
+    <header class="hero reveal" id="hero">
+      <h1>Professional BMI & BMR Calculator</h1>
+      <p>Designed for trainers & clinicians: simple inputs, accurate math, crystal‑clear results, and practical guidance. No clutter. No confusing toggles.</p>
+    </header>
+
+    <section class="panel-grid">
+      <!-- LEFT PANEL -->
+      <article class="panel reveal" id="panelLeft" aria-labelledby="leftTitle">
+        <div class="panel-header">
+          <h2 id="leftTitle">BMI & Composition</h2>
+          <div class="sub">Basic anthropometrics with clear categories & deltas</div>
+        </div>
+        <div class="panel-body">
+          <form id="formLeft" class="form-grid" novalidate>
+
+            <div class="field">
+              <label for="sex">Sex</label>
+              <select id="sex">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+              <div class="hint">Changes visible fields (e.g. hip for females).</div>
+            </div>
+
+            <div class="field">
+              <label for="age">Age <span class="hint">(years)</span></label>
+              <input id="age" class="input" type="number" min="5" max="120" placeholder="e.g., 28">
+            </div>
+
+            <div class="field">
+              <label for="height">Height</label>
+              <div class="unit-row">
+                <input id="height" class="input" type="number" min="50" max="260" step="0.1" placeholder="e.g., 175.5">
+                <span class="unit">cm</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="weight">Weight</label>
+              <div class="unit-row">
+                <input id="weight" class="input" type="number" min="10" max="600" step="0.1" placeholder="e.g., 78.2">
+                <span class="unit">kg</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="waist">Waist <span class="hint">(at navel)</span></label>
+              <div class="unit-row">
+                <input id="waist" class="input" type="number" min="30" max="220" step="0.1" placeholder="Optional">
+                <span class="unit">cm</span>
+              </div>
+            </div>
+
+            <div class="field" id="hipWrap">
+              <label for="hip">Hip <span class="hint">(women)</span></label>
+              <div class="unit-row">
+                <input id="hip" class="input" type="number" min="30" max="220" step="0.1" placeholder="Optional">
+                <span class="unit">cm</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="neck">Neck</label>
+              <div class="unit-row">
+                <input id="neck" class="input" type="number" min="12" max="80" step="0.1" placeholder="Optional">
+                <span class="unit">cm</span>
+              </div>
+            </div>
+
+            <div class="field full">
+              <div class="actions">
+                <button type="submit" class="btn btn-primary" id="btnComputeLeft">
+                  <span>Calculate BMI & Composition</span>
+                  <span class="shine"></span>
+                </button>
+                <button type="button" class="btn btn-ghost" id="btnResetLeft">Reset</button>
+                <div class="legend" aria-hidden="true" style="margin-left:auto">
+                  <div class="stripe"></div>
+                  <span class="lab">Healthy → High risk</span>
+                </div>
+              </div>
+              <div class="alert error" id="alertLeft"></div>
+            </div>
+
+          </form>
+
+          <!-- Left Results -->
+          <section id="leftResults" class="results" aria-live="polite" aria-atomic="true">
+            <div class="metrics">
+              <div class="metric">
+                <div class="label">BMI</div>
+                <div class="value" id="outBMI">—</div>
+                <div class="note" id="outBMICat">—</div>
+              </div>
+              <div class="metric">
+                <div class="label">Body‑Fat % (US Navy)</div>
+                <div class="value" id="outBF">—</div>
+                <div class="note" id="outBFCat">—</div>
+              </div>
+              <div class="metric">
+                <div class="label">Waist‑to‑Height Ratio</div>
+                <div class="value" id="outWHtR">—</div>
+                <div class="note" id="outWHtRCat">—</div>
+              </div>
+            </div>
+
+            <div class="badges" id="leftBadges"></div>
+
+            <div class="comparison">
+              <div class="comp-row">
+                <div class="comp-desc">Distance from healthy BMI midpoint (≈ 21.7)</div>
+                <div class="delta" id="bmiDelta">—</div>
+              </div>
+              <div class="bar" aria-hidden="true"><div class="fill" id="bmiBar"></div></div>
+            </div>
+
+            <div class="advice">
+              <div class="advice-card">
+                <h4>Nutrition — What to Eat</h4>
+                <p id="leftAdviceNutrition">—</p>
+              </div>
+              <div class="advice-card">
+                <h4>Training — How to Move</h4>
+                <p id="leftAdviceTraining">—</p>
+              </div>
+              <div class="advice-card">
+                <h4>Monitoring — What to Track</h4>
+                <p id="leftAdviceMonitor">—</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <!-- RIGHT PANEL -->
+      <article class="panel reveal" id="panelRight" aria-labelledby="rightTitle">
+        <div class="panel-header">
+          <h2 id="rightTitle">BMR & Daily Energy</h2>
+          <div class="sub">Mifflin‑St Jeor + clear calorie targets</div>
+        </div>
+        <div class="panel-body">
+          <form id="formRight" class="form-grid" novalidate>
+
+            <div class="field">
+              <label for="r_sex">Sex</label>
+              <select id="r_sex">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+              <div class="hint">Keeps left and right panels in sync.</div>
+            </div>
+
+            <div class="field">
+              <label for="r_age">Age <span class="hint">(years)</span></label>
+              <input id="r_age" class="input" type="number" min="5" max="120" placeholder="e.g., 28">
+            </div>
+
+            <div class="field">
+              <label for="r_height">Height</label>
+              <div class="unit-row">
+                <input id="r_height" class="input" type="number" min="50" max="260" step="0.1" placeholder="e.g., 175.5">
+                <span class="unit">cm</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="r_weight">Weight</label>
+              <div class="unit-row">
+                <input id="r_weight" class="input" type="number" min="10" max="600" step="0.1" placeholder="e.g., 78.2">
+                <span class="unit">kg</span>
+              </div>
+            </div>
+
+            <div class="field full">
+              <label for="r_activity">Activity Level</label>
+              <select id="r_activity">
+                <option value="1.2">Sedentary — little or no exercise</option>
+                <option value="1.375">Lightly active — 1–3 days/week</option>
+                <option value="1.55">Moderately active — 3–5 days/week</option>
+                <option value="1.725">Very active — 6–7 days/week</option>
+                <option value="1.9">Extra active — physical job / athlete</option>
+              </select>
+              <div class="hint">Choose what reflects last 2–3 weeks, not wishful thinking 🙂</div>
+            </div>
+
+            <div class="field full">
+              <div class="actions">
+                <button type="submit" class="btn btn-primary" id="btnComputeRight">
+                  <span>Calculate BMR & TDEE</span>
+                  <span class="shine"></span>
+                </button>
+                <button type="button" class="btn btn-ghost" id="btnResetRight">Reset</button>
+                <div class="legend" aria-hidden="true" style="margin-left:auto">
+                  <div class="stripe"></div>
+                  <span class="lab">Cut → Maintain → Bulk</span>
+                </div>
+              </div>
+              <div class="alert error" id="alertRight"></div>
+            </div>
+
+          </form>
+
+          <!-- Right Results -->
+          <section id="rightResults" class="results" aria-live="polite" aria-atomic="true">
+            <div class="metrics">
+              <div class="metric">
+                <div class="label">BMR</div>
+                <div class="value" id="outBMR">—</div>
+                <div class="note">Calories/day at rest</div>
+              </div>
+              <div class="metric">
+                <div class="label">TDEE</div>
+                <div class="value" id="outTDEE">—</div>
+                <div class="note" id="tdeeNote">Based on your activity</div>
+              </div>
+              <div class="metric">
+                <div class="label">Targets</div>
+                <div class="value" id="outTargets">—</div>
+                <div class="note">Cut / Maintain / Bulk</div>
+              </div>
+            </div>
+
+            <div class="badges" id="rightBadges"></div>
+
+            <div class="comparison">
+              <div class="comp-row">
+                <div class="comp-desc">Example: mild weight loss target (‑10%)</div>
+                <div class="delta" id="calDelta">—</div>
+              </div>
+              <div class="bar" aria-hidden="true"><div class="fill" id="calBar"></div></div>
+            </div>
+
+            <div class="advice">
+              <div class="advice-card">
+                <h4>Diet Plan</h4>
+                <p id="rightAdviceDiet">—</p>
+              </div>
+              <div class="advice-card">
+                <h4>Training Pattern</h4>
+                <p id="rightAdviceTrain">—</p>
+              </div>
+              <div class="advice-card">
+                <h4>How to Adjust</h4>
+                <p id="rightAdviceAdjust">—</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </article>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* =========================================================
+   BMI & BMR PRO — Interactions, Calculations & Animations
+   Uses GSAP if available; gracefully degrades without it.
+   ========================================================= */
+(function(){
+  const hasGSAP = typeof window.gsap !== 'undefined';
+  const $ = (s,ctx=document)=>ctx.querySelector(s);
+  const $$ = (s,ctx=document)=>Array.from(ctx.querySelectorAll(s));
+
+  /* ------------- Ambient Canvas Stars / Particles ------------- */
+  const canvas = document.getElementById('stars');
+  if(canvas){
+    const ctx = canvas.getContext('2d');
+    const DPR = Math.min(2, window.devicePixelRatio || 1);
+    function resize(){
+      canvas.width = canvas.clientWidth * DPR;
+      canvas.height = canvas.clientHeight * DPR;
+    }
+    function starField(){
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0,0,W,H);
+      const count = Math.round((W*H)/40000);
+      for(let i=0;i<count;i++){
+        const x = Math.random()*W, y = Math.random()*H, r = Math.random()*1.5+0.2, a = Math.random()*0.35+0.1;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fill();
+      }
+    }
+    function loop(){ starField(); anim = requestAnimationFrame(()=>setTimeout(loop, 700)); }
+    let anim;
+    resize(); starField(); loop();
+    window.addEventListener('resize', ()=>{ resize(); starField(); });
+  }
+
+  /* ------------- Reveal on load ------------- */
+  window.addEventListener('DOMContentLoaded', ()=>{
+    $$('.reveal').forEach((el,i)=>{
+      setTimeout(()=> el.classList.add('show'), 160 + i*90);
+    });
+  });
+
+  /* ------------- Panel parallax light following ------------- */
+  $$('.panel').forEach(panel=>{
+    panel.addEventListener('pointermove', e=>{
+      const r = panel.getBoundingClientRect();
+      const x = ((e.clientX - r.left)/r.width)*100;
+      const y = ((e.clientY - r.top)/r.height)*100;
+      panel.style.setProperty('--mx', x+'%');
+      panel.style.setProperty('--my', y+'%');
+    });
+  });
+
+  /* ------------- Shine/ripple on buttons ------------- */
+  $$('.btn').forEach(btn=>{
+    btn.addEventListener('pointermove', e=>{
+      const r = btn.getBoundingClientRect();
+      const x = ((e.clientX - r.left)/r.width)*100;
+      const y = ((e.clientY - r.top)/r.height)*100;
+      btn.style.setProperty('--mx', x+'%');
+      btn.style.setProperty('--my', y+'%');
+    });
+    btn.addEventListener('click', e=>{
+      const r = btn.getBoundingClientRect();
+      btn.style.setProperty('--rx', (e.clientX - r.left)+'px');
+      btn.style.setProperty('--ry', (e.clientY - r.top)+'px');
+      btn.classList.remove('ripple'); void btn.offsetWidth; btn.classList.add('ripple');
+      setTimeout(()=>btn.classList.remove('ripple'), 480);
+    });
+  });
+
+  /* ------------- Gender field logic (hip for female only) ------------- */
+  const sex = $('#sex'); const hipWrap = $('#hipWrap'); const r_sex = $('#r_sex');
+  function applySexUI(val){
+    if(val === 'male'){ hipWrap.style.display='none'; $('#hip').value=''; }
+    else { hipWrap.style.display=''; }
+  }
+  if(sex){ applySexUI(sex.value); sex.addEventListener('change', e=> applySexUI(e.target.value)); }
+  // Keep both panels in sync
+  if(sex && r_sex){
+    sex.addEventListener('change', ()=> r_sex.value = sex.value);
+    r_sex.addEventListener('change', ()=> { sex.value = r_sex.value; applySexUI(sex.value); });
+  }
+
+  /* =========================================================
+     LEFT PANEL — BMI, WHtR, US Navy Body‑Fat
+     ========================================================= */
+  const fL = $('#formLeft'), alertLeft = $('#alertLeft'), leftResults = $('#leftResults');
+  const outBMI = $('#outBMI'), outBMICat = $('#outBMICat');
+  const outWHtR = $('#outWHtR'), outWHtRCat = $('#outWHtRCat');
+  const outBF = $('#outBF'), outBFCat = $('#outBFCat');
+  const bmiBar = $('#bmiBar'), bmiDelta = $('#bmiDelta'), leftBadges = $('#leftBadges');
+
+  function num(v){ const n = parseFloat(v); return isFinite(n) ? n : null; }
+  function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+
+  function bmiCategory(bmi){
+    if(bmi<18.5) return ['Underweight', 'Below healthy body mass for most adults.', 'bad'];
+    if(bmi<25) return ['Normal', 'Healthy range for most adults.', 'good'];
+    if(bmi<30) return ['Overweight', 'Higher than typical healthy range.', 'mid'];
+    return ['Obesity', 'Significantly above healthy range — review with clinician.', 'bad'];
+  }
+  function whtrCategory(whtr){
+    if(whtr<0.40) return ['Low', 'Likely low adiposity', 'ok'];
+    if(whtr<0.50) return ['Healthy', 'Within cardiometabolic healthy range', 'good'];
+    if(whtr<0.60) return ['Increased', 'Abdominal fat risk rising', 'mid'];
+    return ['High', 'Abdominal obesity risk is high', 'bad'];
+  }
+  function bfCategory(sex, bf){
+    if(sex==='male'){
+      if(bf<6) return ['Very low', 'Below typical essential fat', 'mid'];
+      if(bf<14) return ['Athletic', 'Lean & muscular', 'good'];
+      if(bf<18) return ['Fit', 'Healthy for many adults', 'good'];
+      if(bf<25) return ['Average', 'Acceptable', 'ok'];
+      return ['High', 'Elevated adiposity', 'bad'];
+    } else {
+      if(bf<14) return ['Very low', 'Below typical essential fat', 'mid'];
+      if(bf<21) return ['Athletic', 'Lean & muscular', 'good'];
+      if(bf<25) return ['Fit', 'Healthy for many adults', 'good'];
+      if(bf<32) return ['Average', 'Acceptable', 'ok'];
+      return ['High', 'Elevated adiposity', 'bad'];
+    }
+  }
+
+  function computeBF({sex, height, waist, hip, neck}){
+    // US Navy method expects cm; uses log10
+    if(sex==='male'){
+      if(waist && neck && height && (waist-neck)>0){
+        return +(86.010*Math.log10(waist - neck) - 70.041*Math.log10(height) + 36.76).toFixed(1);
+      }
+    } else {
+      if(waist && hip && neck && height && (waist+hip-neck)>0){
+        return +(163.205*Math.log10(waist+hip - neck) - 97.684*Math.log10(height) - 78.387).toFixed(1);
+      }
+    }
+    return null;
+  }
+
+  function tweenNumber(el, to, suffix='', dur=0.8){
+    if(!hasGSAP){ el.textContent = (typeof to==='number' ? to : to)+' '+suffix; return; }
+    const obj = {v:0};
+    gsap.to(obj, {
+      v: to,
+      duration: dur,
+      ease: 'power2.out',
+      onUpdate:()=>{ el.textContent = (typeof to==='number' ? (Number.isInteger(to)? Math.round(obj.v) : obj.v.toFixed(1)) : to) + (suffix? ' '+suffix : ''); }
+    });
+  }
+
+  fL.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    alertLeft.classList.remove('show'); alertLeft.textContent='';
+
+    const s = $('#sex').value;
+    const age = num($('#age').value);
+    const h = num($('#height').value);
+    const w = num($('#weight').value);
+    const waist = num($('#waist').value);
+    const hip = num($('#hip').value);
+    const neck = num($('#neck').value);
+
+    if(!h || !w){
+      alertLeft.textContent = 'Please enter height and weight to compute BMI.';
+      alertLeft.classList.add('show','error');
+      return;
+    }
+
+    // BMI
+    const hm = h/100;
+    const bmi = +(w / (hm*hm)).toFixed(1);
+    const [bmiCat, bmiNote, bmiFlag] = bmiCategory(bmi);
+
+    // WHtR
+    let whtr = null, whtrCat='—', whtrNote='—', whtrFlag='ok';
+    if(waist){
+      whtr = +(waist / h).toFixed(2);
+      [whtrCat, whtrNote, whtrFlag] = whtrCategory(whtr);
+    }
+
+    // Body‑Fat via Navy
+    let bf = computeBF({sex:s, height:h, waist, hip, neck});
+    let bfCat='—', bfNote='—', bfFlag='ok';
+    if(bf!==null){
+      [bfCat, bfNote, bfFlag] = bfCategory(s, bf);
+    }
+
+    // Populate UI
+    if(hasGSAP){
+      tweenNumber(outBMI, bmi, '', .7);
+      outBMICat.textContent = `${bmiCat} • ${bmiNote}`;
+      if(whtr!==null){ tweenNumber(outWHtR, whtr, '', .7); outWHtRCat.textContent = `${whtrCat} • ${whtrNote}`; }
+      else { outWHtR.textContent='—'; outWHtRCat.textContent='Add waist & height for WHtR'; }
+      if(bf!==null){ tweenNumber(outBF, bf, '%', .7); outBFCat.textContent = `${bfCat} • ${bfNote}`; }
+      else { outBF.textContent='—'; outBFCat.textContent='Add waist/neck (and hip for females) for BF%'; }
+    } else {
+      outBMI.textContent = bmi; outBMICat.textContent = `${bmiCat} • ${bmiNote}`;
+      outWHtR.textContent = whtr!==null? whtr : '—'; outWHtRCat.textContent = whtr!==null? `${whtrCat} • ${whtrNote}` : 'Add waist & height for WHtR';
+      outBF.textContent = bf!==null? `${bf}%` : '—'; outBFCat.textContent = bf!==null? `${bfCat} • ${bfNote}` : 'Add waist/neck (and hip for females) for BF%';
+    }
+
+    // Badges
+    leftBadges.innerHTML = '';
+    const mk = (txt,cls)=>{ const b=document.createElement('span'); b.className='badge '+cls; b.textContent=txt; return b; };
+    leftBadges.append(
+      mk(bmiCat, bmiFlag==='good'?'good':(bmiFlag==='mid'?'mid':'bad'))
+    );
+    if(whtr!==null) leftBadges.append(mk('WHtR: '+whtrCat, whtrFlag==='good'?'good':(whtrFlag==='mid'?'mid':'bad')));
+    if(bf!==null) leftBadges.append(mk('BF: '+bfCat, bfFlag==='good'?'good':(bfFlag==='mid'?'mid':'bad')));
+
+    // Comparison bar for BMI (map 15..35 to 6%..94%)
+    const fill = clamp(((bmi-15)/20)*88 + 6, 4, 98);
+    if(hasGSAP) gsap.to(bmiBar, {width: fill+'%', duration: .9, ease: 'power2.out'});
+    else bmiBar.style.width = fill+'%';
+    const delta = +(bmi - 21.7).toFixed(1);
+    bmiDelta.textContent = (delta>=0? '+':'') + delta + ' BMI from healthy midpoint';
+
+    // Advice
+    $('#leftAdviceNutrition').innerHTML = adviceNutrition({bmi, bf, whtr});
+    $('#leftAdviceTraining').innerHTML = adviceTraining({bmi, bf});
+    $('#leftAdviceMonitor').innerHTML = adviceMonitoring({bmi, bf, whtr});
+
+    // Show results
+    leftResults.classList.add('show');
+    if(hasGSAP) gsap.fromTo(leftResults, {y:8, opacity:0}, {y:0, opacity:1, duration:.5, ease:'power2.out'});
+  });
+
+  $('#btnResetLeft').addEventListener('click', ()=>{
+    ['age','height','weight','waist','hip','neck'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+    leftResults.classList.remove('show');
+    alertLeft.classList.remove('show','error'); alertLeft.textContent='';
+  });
+
+  /* =========================================================
+     RIGHT PANEL — BMR (Mifflin‑St Jeor), TDEE, Targets
+     ========================================================= */
+  const fR = $('#formRight'), alertRight = $('#alertRight'), rightResults = $('#rightResults');
+  const outBMR = $('#outBMR'), outTDEE = $('#outTDEE'), outTargets = $('#outTargets');
+  const calBar = $('#calBar'), calDelta = $('#calDelta'), rightBadges = $('#rightBadges');
+
+  fR.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    alertRight.classList.remove('show','error'); alertRight.textContent='';
+
+    const s = $('#r_sex').value;
+    const age = num($('#r_age').value);
+    const h = num($('#r_height').value);
+    const w = num($('#r_weight').value);
+    const act = num($('#r_activity').value) || 1.2;
+
+    if(!age || !h || !w){
+      alertRight.textContent = 'Please enter age, height & weight to compute BMR.';
+      alertRight.classList.add('show','error');
+      return;
+    }
+
+    let bmr;
+    if(s==='male') bmr = Math.round(10*w + 6.25*h - 5*age + 5);
+    else bmr = Math.round(10*w + 6.25*h - 5*age - 161);
+
+    const tdee = Math.round(bmr * act);
+    const cutLow = Math.round(tdee*0.80), cutHigh=Math.round(tdee*0.90);
+    const bulkLow = Math.round(tdee*1.05), bulkHigh=Math.round(tdee*1.12);
+
+    if(hasGSAP){ tweenNumber(outBMR, bmr, 'kcal', .7); tweenNumber(outTDEE, tdee, 'kcal', .7); }
+    else { outBMR.textContent = bmr+' kcal'; outTDEE.textContent = tdee+' kcal'; }
+    outTargets.textContent = `${cutLow}–${cutHigh} / ${tdee} / ${bulkLow}–${bulkHigh} kcal`;
+
+    // badges (friendly context)
+    rightBadges.innerHTML='';
+    rightBadges.append((()=>{const s=document.createElement('span'); s.className='badge good'; s.textContent='Mifflin‑St Jeor'; return s;})());
+    rightBadges.append((()=>{const s=document.createElement('span'); s.className='badge mid'; s.textContent='Activity ×'+act; return s;})());
+
+    // Calorie example bar (map 0..6000)
+    const pos = clamp((tdee/6000)*100, 4, 98);
+    if(hasGSAP) gsap.to(calBar, {width: pos+'%', duration:.9, ease:'power2.out'});
+    else calBar.style.width = pos+'%';
+    calDelta.textContent = `‑10% cut ≈ ${Math.round(tdee*0.9)} kcal/day`;
+
+    // Advice (practical & non‑repetitive)
+    $('#rightAdviceDiet').innerHTML = adviceDiet({tdee, weight:w});
+    $('#rightAdviceTrain').innerHTML = adviceRightTraining();
+    $('#rightAdviceAdjust').innerHTML = adviceAdjust();
+
+    rightResults.classList.add('show');
+    if(hasGSAP) gsap.fromTo(rightResults, {y:8, opacity:0}, {y:0, opacity:1, duration:.5, ease:'power2.out'});
+  });
+
+  $('#btnResetRight').addEventListener('click', ()=>{
+    ['r_age','r_height','r_weight'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+    rightResults.classList.remove('show');
+    alertRight.classList.remove('show','error'); alertRight.textContent='';
+  });
+
+  /* =========================================================
+     Advice Generators — clear, practical, contextual
+     ========================================================= */
+  function adviceNutrition({bmi, bf, whtr}){
+    const lines=[];
+    if(bmi<18.5){
+      lines.push(`<strong>Calories:</strong> add ~300–500 kcal/day; aim for steady gain.`);
+      lines.push(`<strong>Protein:</strong> 1.6–2.2 g/kg/day; include dairy, eggs, legumes, lean meats.`);
+      lines.push(`<strong>Carbs & fats:</strong> embrace calorie‑dense carbs (rice, potatoes, oats) + healthy fats (olive oil, nuts).`);
+    } else if(bmi<25){
+      lines.push(`<strong>Calories:</strong> maintain ±200 kcal; match intake to training days.`);
+      lines.push(`<strong>Protein:</strong> ~1.6–1.8 g/kg/day; distribute across 3–4 meals.`);
+      lines.push(`<strong>Quality:</strong> 80% whole foods, 20% flex — keep it sustainable.`);
+    } else if(bmi<30){
+      lines.push(`<strong>Calories:</strong> start with a 10–15% deficit; avoid crash dieting.`);
+      lines.push(`<strong>Protein:</strong> 1.8–2.2 g/kg/day to preserve muscle.`);
+      lines.push(`<strong>Plates:</strong> half vegetables, quarter protein, quarter smart carbs.`);
+    } else {
+      lines.push(`<strong>Calories:</strong> 15–20% deficit; consistency beats extremes.`);
+      lines.push(`<strong>Protein:</strong> 1.8–2.4 g/kg/day; prioritize lean sources.`);
+      lines.push(`<strong>Habits:</strong> plan meals, reduce liquid calories, keep high‑fiber foods front and center.`);
+    }
+    if(bf!=null){
+      if((bf>25 && whtr && whtr>=0.5) || (bf>32 && whtr && whtr>=0.5)){
+        lines.push(`<em>Abdominal health:</em> higher central fat suggests limiting ultra‑processed foods, alcohol, and late‑night snacking.`);
+      }
+    } else {
+      lines.push(`<em>Tip:</em> add waist/neck (and hip for females) to refine body‑fat insight — it personalizes targets.`);
+    }
+    return lines.map(l=>`<p>${l}</p>`).join('');
+  }
+
+  function adviceTraining({bmi, bf}){
+    const lines=[];
+    if(bmi<18.5){
+      lines.push(`<strong>Strength:</strong> 3–4 full‑body sessions/week; 8–12 reps, progressive overload.`);
+      lines.push(`<strong>Cardio:</strong> minimal at first; short zone‑2 for heart health.`);
+    } else if(bmi<25){
+      lines.push(`<strong>Strength:</strong> 3–4 sessions; rotate heavy (4–6 reps) and moderate (8–12).`);
+      lines.push(`<strong>Cardio:</strong> 2–3 × 20–30 min; intervals optional.`);
+    } else {
+      lines.push(`<strong>Strength:</strong> 3–5 sessions; keep intensity but manage joint stress.`);
+      lines.push(`<strong>Cardio:</strong> 3–5 × 25–45 min; mix zone‑2 with short intervals.`);
+    }
+    lines.push(`<em>Recovery:</em> 7–9 h sleep, stress management, and mobility once/twice weekly.`);
+    return lines.map(l=>`<p>${l}</p>`).join('');
+  }
+
+  function adviceMonitoring({bmi, bf, whtr}){
+    const lines=[];
+    lines.push(`<strong>Track:</strong> body weight (same time weekly), waist, and gym performance.`);
+    lines.push(`<strong>Adjust:</strong> if no trend change after 3 weeks, tweak calories by 5–10% or review training effort.`);
+    if(whtr && whtr>=0.5){ lines.push(`<em>Central fat note:</em> prioritize consistent cardio & fiber‑rich foods to bring waist down.`); }
+    return lines.map(l=>`<p>${l}</p>`).join('');
+  }
+
+  function adviceDiet({tdee, weight}){
+    const protein = Math.round(1.8*weight);
+    const fats = Math.round(0.8*weight);
+    const carbs = Math.max(0, Math.round((tdee - (protein*4 + fats*9))/4));
+    return [
+      `<strong>Calories:</strong> target around <strong>${tdee} kcal/day</strong> (adjust by goal).`,
+      `<strong>Macros (approx):</strong> Protein <strong>${protein} g</strong> • Fat <strong>${fats} g</strong> • Carbs <strong>${carbs} g</strong>.`,
+      `<strong>Meals:</strong> 3–4/day; add a protein source each meal, time carbs around workouts.`
+    ].map(p=>`<p>${p}</p>`).join('');
+  }
+
+  function adviceRightTraining(){
+    return [
+      `<strong>Template:</strong> 4‑day split — Upper/Lower/Push/Pull or Full/Full/Upper/Lower.`,
+      `Include compound lifts; add accessories for weak points. Keep 1–2 reps in reserve (RIR).`,
+      `Add 2 cardio sessions (20–35 min): zone‑2 base or intervals if time‑poor.`
+    ].map(p=>`<p>${p}</p>`).join('');
+  }
+
+  function adviceAdjust(){
+    return [
+      `If weight change is <0.25%/week for 3 weeks, adjust calories 5–10%.`,
+      `Use weekly averages (not single days).`,
+      `Plateau? audit steps, sleep, adherence, and training intensity before big changes.`
+    ].map(p=>`<p>${p}</p>`).join('');
+  }
+
+  /* =========================================================
+     Tiny extras: keyboard UX, enter to submit nearest form
+     ========================================================= */
+  $$('.input').forEach(inp=>{
+    inp.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){
+        e.preventDefault();
+        const form = e.target.closest('form');
+        if(form) form.dispatchEvent(new Event('submit', {cancelable:true, bubbles:true}));
+      }
+    });
+  });
+
+  /* =========================================================
+     Entrance animations with GSAP
+     ========================================================= */
+  if(hasGSAP){
+    const tl = gsap.timeline({defaults:{ease:'power2.out'}});
+    tl.from('#hero h1', {y:10, opacity:0, duration:.45})
+      .from('#hero p', {y:10, opacity:0, duration:.35}, '-=.2')
+      .from('#panelLeft', {y:16, opacity:0, duration:.5}, '-=.05')
+      .from('#panelRight', {y:16, opacity:0, duration:.5}, '-=.35');
+  }
+
+})();
+</script>
+{% endblock %}

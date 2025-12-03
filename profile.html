@@ -1,0 +1,1185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile Dashboard - GYM-SHYM{% endblock %}
+
+{% block extra_head %}
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  :root {
+    --primary: #ffb400;
+    --primary-alt: #ff7a00;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --dark: #080808;
+    --card-bg: rgba(20, 20, 30, 0.7);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text: #e9eaee;
+    --muted: #bcbec4;
+  }
+
+  .profile-section {
+    position: relative;
+    min-height: 100vh;
+    margin-top: 64px;
+    background: linear-gradient(135deg, #0a0a15 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #080808 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    overflow: hidden;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Animated Background */
+  .bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    margin-top: 64px;
+  }
+
+  .animated-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 50%, rgba(255, 180, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 122, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(100, 200, 255, 0.05) 0%, transparent 50%);
+    animation: float 20s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-20px) scale(1.05); }
+  }
+
+  .particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 180, 0, 0.3);
+    border-radius: 50%;
+    animation: float-particle linear infinite;
+  }
+
+  @keyframes float-particle {
+    0% {
+      transform: translateY(100vh) translateX(0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100vh) translateX(100px);
+      opacity: 0;
+    }
+  }
+
+  .profile-container {
+    position: relative;
+    z-index: 10;
+    padding: 60px 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Auth Forms */
+  .auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 140px);
+    perspective: 1000px;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 450px;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: 28px;
+    padding: 50px;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 60px rgba(255, 180, 0, 0.1);
+    animation: authSlideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 180, 0, 0.1), transparent);
+    animation: spin 8s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .auth-card > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  @keyframes authSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(50px) rotateX(10deg);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) rotateX(0);
+    }
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .auth-logo {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-alt));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+  }
+
+  .auth-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .auth-subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  .auth-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .auth-tabs button {
+    flex: 1;
+    padding: 14px 0;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+  }
+
+  .auth-tabs button.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .form-group input::placeholder {
+    color: rgba(188, 190, 196, 0.5);
+  }
+
+  .form-group input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(255, 180, 0, 0.1), inset 0 0 20px rgba(255, 180, 0, 0.05);
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-alt));
+    border: none;
+    border-radius: 12px;
+    color: #000;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 12px;
+    box-shadow: 0 8px 24px rgba(255, 180, 0, 0.25);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(255, 180, 0, 0.35);
+  }
+
+  .submit-btn:active {
+    transform: translateY(-1px);
+  }
+
+  /* Dashboard */
+  .dashboard-header {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 40px;
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: headerSlideIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 40px rgba(255, 180, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  @keyframes headerSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-30px) rotateX(10deg);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) rotateX(0);
+    }
+  }
+
+  .dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 180, 0, 0.08), transparent);
+    animation: moveGradient 15s ease-in-out infinite;
+  }
+
+  @keyframes moveGradient {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(100px, 100px); }
+  }
+
+  .dashboard-header > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  .dashboard-title h1 {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .dashboard-title p {
+    color: var(--muted);
+    font-size: 1rem;
+  }
+
+  .logout-btn {
+    padding: 12px 28px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+  }
+
+  .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2);
+  }
+
+  /* Bubble Grid */
+  .bubble-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 28px;
+    margin-bottom: 40px;
+    perspective: 1000px;
+  }
+
+  .bubble-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 32px;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: cardFadeIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  }
+
+  @keyframes cardFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(40px) rotateX(15deg) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) rotateX(0) scale(1);
+    }
+  }
+
+  .bubble-card:nth-child(1) { animation-delay: 0.1s; }
+  .bubble-card:nth-child(2) { animation-delay: 0.2s; }
+  .bubble-card:nth-child(3) { animation-delay: 0.3s; }
+  .bubble-card:nth-child(4) { animation-delay: 0.4s; }
+  .bubble-card:nth-child(5) { animation-delay: 0.5s; }
+  .bubble-card:nth-child(6) { animation-delay: 0.6s; }
+
+  .bubble-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(255, 180, 0, 0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .bubble-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    border-radius: 24px;
+  }
+
+  .bubble-card:hover {
+    transform: translateY(-12px) rotateX(-5deg) rotateY(5deg) scale(1.02);
+    border-color: rgba(255, 180, 0, 0.4);
+    box-shadow: 
+      0 24px 48px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      0 0 60px rgba(255, 180, 0, 0.2);
+  }
+
+  .bubble-card:hover::before {
+    opacity: 1;
+  }
+
+  .bubble-card:hover::after {
+    opacity: 1;
+  }
+
+  .bubble-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-alt));
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    box-shadow: 0 8px 24px rgba(255, 180, 0, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 3;
+  }
+
+  .bubble-card:hover .bubble-icon {
+    transform: scale(1.1) rotateZ(-5deg);
+    box-shadow: 0 12px 32px rgba(255, 180, 0, 0.4);
+  }
+
+  .bubble-card.locked .bubble-icon {
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.4), rgba(75, 85, 99, 0.4));
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .bubble-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 3;
+    text-transform: uppercase;
+  }
+
+  .bubble-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+    position: relative;
+    z-index: 3;
+  }
+
+  .bubble-content {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    position: relative;
+    z-index: 3;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 16px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-alt));
+    border-radius: 999px;
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 12px rgba(255, 180, 0, 0.4);
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 12px 0;
+    font-size: 0.95rem;
+    align-items: center;
+  }
+
+  .stat-label {
+    color: var(--muted);
+  }
+
+  .stat-value {
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .locked-badge {
+    display: inline-block;
+    background: rgba(107, 114, 128, 0.2);
+    color: var(--muted);
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 12px;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 28px;
+    padding: 48px;
+    max-width: 480px;
+    width: 100%;
+    animation: popUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 60px rgba(255, 180, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .modal-content::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 180, 0, 0.2), transparent);
+    animation: spin 10s linear infinite;
+  }
+
+  .modal-content > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  @keyframes popUp {
+    from {
+      opacity: 0;
+      transform: scale(0.8) translateY(30px) rotateX(20deg);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0) rotateX(0);
+    }
+  }
+
+  .modal-icon {
+    font-size: 3.5rem;
+    margin-bottom: 24px;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+
+  .modal-content h2 {
+    font-size: 2rem;
+    margin-bottom: 16px;
+    color: var(--text);
+    font-weight: 800;
+  }
+
+  .modal-content p {
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.8;
+    font-size: 1rem;
+  }
+
+  .modal-features {
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+    font-size: 0.95rem;
+  }
+
+  .modal-features li {
+    margin: 12px 0;
+    color: var(--text);
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 16px;
+  }
+
+  .modal-buttons button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+  }
+
+  .modal-close {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .modal-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .modal-action {
+    background: linear-gradient(135deg, var(--primary), var(--primary-alt));
+    color: #000;
+    box-shadow: 0 8px 24px rgba(255, 180, 0, 0.3);
+  }
+
+  .modal-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(255, 180, 0, 0.4);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .profile-section {
+      margin-top: 56px;
+    }
+
+    .profile-container {
+      padding: 30px 16px;
+    }
+
+    .auth-card {
+      padding: 32px 20px;
+      max-width: 100%;
+    }
+
+    .auth-logo {
+      font-size: 2.2rem;
+    }
+
+    .auth-title {
+      font-size: 1.5rem;
+    }
+
+    .dashboard-header {
+      flex-direction: column;
+      text-align: center;
+      gap: 20px;
+      padding: 28px;
+    }
+
+    .dashboard-title h1 {
+      font-size: 1.8rem;
+    }
+
+    .dashboard-title p {
+      font-size: 0.9rem;
+    }
+
+    .logout-btn {
+      width: 100%;
+      padding: 12px 20px;
+    }
+
+    .bubble-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .bubble-card {
+      padding: 24px;
+    }
+
+    .bubble-icon {
+      width: 56px;
+      height: 56px;
+      font-size: 1.6rem;
+    }
+
+    .bubble-title {
+      font-size: 1.3rem;
+    }
+
+    .modal-content {
+      padding: 32px 20px;
+      max-width: 100%;
+    }
+
+    .modal-icon {
+      font-size: 2.5rem;
+    }
+
+    .modal-content h2 {
+      font-size: 1.6rem;
+    }
+
+    .modal-buttons {
+      flex-direction: column;
+    }
+
+    .modal-buttons button {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .auth-card {
+      padding: 24px 16px;
+    }
+
+    .auth-logo {
+      font-size: 1.8rem;
+    }
+
+    .auth-title {
+      font-size: 1.3rem;
+    }
+
+    .form-group input {
+      padding: 12px 14px;
+      font-size: 16px;
+    }
+
+    .submit-btn {
+      padding: 14px;
+      font-size: 1rem;
+    }
+
+    .dashboard-header {
+      padding: 20px;
+    }
+
+    .dashboard-title h1 {
+      font-size: 1.4rem;
+    }
+
+    .bubble-card {
+      padding: 20px;
+    }
+
+    .bubble-title {
+      font-size: 1.1rem;
+    }
+
+    .bubble-content {
+      font-size: 0.9rem;
+    }
+
+    .stat-row {
+      font-size: 0.85rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-section">
+  <div class="bg-canvas">
+    <div class="animated-bg"></div>
+    <div class="particles" id="particleContainer"></div>
+  </div>
+
+  <div class="profile-container">
+    <!-- Auth Forms -->
+    <div id="authWrapper" class="auth-wrapper" style="display: none;">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">GYM-<span style="color: var(--primary);">SHYM</span></div>
+          <h2 class="auth-title">Welcome Back</h2>
+          <p class="auth-subtitle">Your fitness journey awaits</p>
+        </div>
+
+        <div class="auth-tabs">
+          <button class="tab-btn active" data-tab="login">Login</button>
+          <button class="tab-btn" data-tab="signup">Sign Up</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="tab-content active">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="loginEmail" placeholder="Enter your email">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="Enter your password">
+          </div>
+          <button class="submit-btn" onclick="handleLogin()">Login to Dashboard</button>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signupForm" class="tab-content" style="display: none;">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="signupFirst" placeholder="Enter first name">
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="signupLast" placeholder="Enter last name">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="signupEmail" placeholder="Enter your email">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="signupPassword" placeholder="Create a password">
+          </div>
+          <button class="submit-btn" onclick="handleSignup()">Create Account</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" style="display: none;">
+      <div class="dashboard-header">
+        <div class="dashboard-title">
+          <h1>Welcome, <span id="userName">User</span>! 💪</h1>
+          <p>Your personal fitness dashboard</p>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">← Logout</button>
+      </div>
+
+      <!-- Bubble Cards Grid -->
+      <div class="bubble-grid">
+        <!-- Profile Card -->
+        <div class="bubble-card">
+          <div class="bubble-icon">👤</div>
+          <div class="bubble-label">Your Profile</div>
+          <div class="bubble-title">Account Info</div>
+          <div class="bubble-content">
+            <div class="stat-row">
+              <span class="stat-label">Email:</span>
+              <span id="profileEmail" class="stat-value">user@example.com</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Member Since:</span>
+              <span id="memberSince" class="stat-value">Nov 30, 2025</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Status:</span>
+              <span id="memberStatus" class="stat-value" style="color: #ef4444;">Not a Member</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Membership Card -->
+        <div class="bubble-card locked" id="membershipCard" onclick="toggleMemberPopup()">
+          <div class="bubble-icon">🔐</div>
+          <div class="bubble-label">Premium Access</div>
+          <div class="bubble-title">Membership</div>
+          <div class="bubble-content">
+            <p>Unlock exclusive features and premium benefits</p>
+            <div class="locked-badge">Click to Unlock</div>
+          </div>
+        </div>
+
+        <!-- Attendance Card -->
+        <div class="bubble-card" id="attendanceCard" onclick="checkMembership()">
+          <div class="bubble-icon">📅</div>
+          <div class="bubble-label">This Month</div>
+          <div class="bubble-title">Attendance</div>
+          <div class="bubble-content">
+            <div class="stat-row">
+              <span class="stat-label">Days:</span>
+              <span id="attendanceDays" class="stat-value">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Rate:</span>
+              <span id="attendanceRate" class="stat-value">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="attendanceProgress" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Consistency Card -->
+        <div class="bubble-card" id="consistencyCard" onclick="checkMembership()">
+          <div class="bubble-icon">🔥</div>
+          <div class="bubble-label">Streak</div>
+          <div class="bubble-title">Consistency</div>
+          <div class="bubble-content">
+            <div class="stat-row">
+              <span class="stat-label">Current Streak:</span>
+              <span id="streakDays" class="stat-value">0 days</span>
+            </div>
+            <p style="margin-top: 12px; font-size: 0.85rem; color: var(--muted);">Keep pushing! Build your consistency.</p>
+          </div>
+        </div>
+
+        <!-- Workout Progress Card -->
+        <div class="bubble-card" id="workoutCard" onclick="checkMembership()">
+          <div class="bubble-icon">⚡</div>
+          <div class="bubble-label">Weekly Target</div>
+          <div class="bubble-title">Workout Goal</div>
+          <div class="bubble-content">
+            <div class="stat-row">
+              <span class="stat-label">Completed:</span>
+              <span id="workoutCount" class="stat-value">0/6</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Progress:</span>
+              <span id="workoutPercent" class="stat-value">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="workoutProgress" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plans Card -->
+        <div class="bubble-card" id="plansCard" onclick="checkMembership()">
+          <div class="bubble-icon">📊</div>
+          <div class="bubble-label">Current Plan</div>
+          <div class="bubble-title">Subscription</div>
+          <div class="bubble-content">
+            <div class="stat-row">
+              <span class="stat-label">Plan:</span>
+              <span id="currentPlan" class="stat-value">No Plan</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Renewal:</span>
+              <span id="planRenewal" class="stat-value">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Membership Popup Modal -->
+<div id="membershipModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-icon">🔓</div>
+    <h2>Join GYM-SHYM Today!</h2>
+    <p>Become a member and unlock all the exclusive features to track your fitness journey like never before.</p>
+    
+    <ul class="modal-features">
+      <li>✓ Daily attendance tracking</li>
+      <li>✓ Workout progress monitoring</li>
+      <li>✓ Personal coaching sessions</li>
+      <li>✓ Customized meal plans</li>
+      <li>✓ 24/7 priority support</li>
+    </ul>
+
+    <div class="modal-buttons">
+      <button class="modal-close" onclick="toggleMemberPopup()">Close</button>
+      <button class="modal-action" onclick="redirectToAdmission()">Get Membership</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Generate particles
+  function createParticles() {
+    const container = document.getElementById('particleContainer');
+    for (let i = 0; i < 50; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.duration = (Math.random() * 10 + 15) + 's';
+      particle.style.animationDuration = particle.style.duration;
+      particle.style.animationDelay = Math.random() * 5 + 's';
+      container.appendChild(particle);
+    }
+  }
+
+  createParticles();
+
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      e.target.classList.add('active');
+      const tab = e.target.dataset.tab;
+      document.getElementById(tab + 'Form').style.display = 'block';
+    });
+  });
+
+  let currentUser = null;
+
+  function loadUserFromStorage() {
+    const saved = localStorage.getItem('gymUser');
+    if (saved) {
+      currentUser = JSON.parse(saved);
+      showDashboard();
+    } else {
+      showAuthForm();
+    }
+  }
+
+  function showAuthForm() {
+    document.getElementById('authWrapper').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+  }
+
+  function showDashboard() {
+    document.getElementById('authWrapper').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    updateDashboard();
+  }
+
+  function handleLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    currentUser = {
+      id: Date.now(),
+      email: email,
+      firstName: email.split('@')[0],
+      lastName: 'User',
+      isMember: false,
+      joinDate: new Date().toLocaleDateString(),
+      attendance: 0,
+      plan: null
+    };
+
+    localStorage.setItem('gymUser', JSON.stringify(currentUser));
+    showDashboard();
+  }
+
+  function handleSignup() {
+    const firstName = document.getElementById('signupFirst').value;
+    const lastName = document.getElementById('signupLast').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+
+    if (!firstName || !lastName || !email || !password) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    currentUser = {
+      id: Date.now(),
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      isMember: false,
+      joinDate: new Date().toLocaleDateString(),
+      attendance: 0,
+      plan: null
+    };
+
+    localStorage.setItem('gymUser', JSON.stringify(currentUser));
+    showDashboard();
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('gymUser');
+    currentUser = null;
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('signupFirst').value = '';
+    document.getElementById('signupLast').value = '';
+    document.getElementById('signupEmail').value = '';
+    document.getElementById('signupPassword').value = '';
+    showAuthForm();
+  }
+
+  function updateDashboard() {
+    document.getElementById('userName').textContent = currentUser.firstName;
+    document.getElementById('profileEmail').textContent = currentUser.email;
+    document.getElementById('memberSince').textContent = currentUser.joinDate;
+    
+    if (currentUser.isMember) {
+      document.getElementById('memberStatus').textContent = '✓ Active Member';
+      document.getElementById('memberStatus').style.color = '#22c55e';
+      document.getElementById('membershipCard').classList.remove('locked');
+      
+      document.getElementById('attendanceDays').textContent = '12';
+      document.getElementById('attendanceRate').textContent = '68%';
+      document.getElementById('attendanceProgress').style.width = '68%';
+      document.getElementById('streakDays').textContent = '14 days';
+      document.getElementById('workoutCount').textContent = '5/6';
+      document.getElementById('workoutPercent').textContent = '83%';
+      document.getElementById('workoutProgress').style.width = '83%';
+      document.getElementById('currentPlan').textContent = 'Premium';
+      document.getElementById('planRenewal').textContent = '45 days';
+    } else {
+      document.getElementById('membershipCard').classList.add('locked');
+    }
+  }
+
+  function checkMembership() {
+    if (!currentUser.isMember) {
+      toggleMemberPopup();
+    }
+  }
+
+  function toggleMemberPopup() {
+    document.getElementById('membershipModal').classList.toggle('active');
+  }
+
+  function redirectToAdmission() {
+    window.location.href = '{% url "body:admission_form" %}';
+  }
+
+  window.addEventListener('load', loadUserFromStorage);
+</script>
+{% endblock %}
