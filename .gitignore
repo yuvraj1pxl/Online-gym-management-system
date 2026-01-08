@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+my_venv/
+venv/
+db.sqlite3
+media/
+staticfiles/
+*.mp4
+*.mov
+*.avi

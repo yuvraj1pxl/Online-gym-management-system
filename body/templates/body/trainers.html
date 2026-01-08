@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Trainers — GYM-SHIM{% endblock %}
+
+{% block content %}
+<!-- TRAINERS - NOW DATABASE-DRIVEN -->
+<style>
+:root{
+  --bg:#070708; --muted:#bfc2c5;
+  --accent:#ff6a00; --accent-2:#ffd366;
+  --card-bg: rgba(255,255,255,0.03);
+  --glass: rgba(255,255,255,0.04);
+}
+
+/* Page frame */
+.trainers-hero{
+  position:relative;height:34vh;min-height:220px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg, rgba(0,0,0,0.36), rgba(0,0,0,0.65));
+  margin-bottom:28px;
+}
+.trainers-hero .wrap{max-width:1200px;padding:36px 20px;text-align:center}
+.trainers-hero h1{font-family: 'Playfair Display', serif;font-size:clamp(28px,4.5vw,44px);margin:0;color:#fff;letter-spacing:-0.6px}
+.trainers-hero p.lead{color:var(--muted);margin-top:8px}
+
+/* Grid */
+.container { max-width:1200px;margin:0 auto;padding:0 20px 1px; }
+.trainers-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:26px;
+  align-items:start;
+}
+
+/* Card base - 3D + glass + metallic rim */
+.trainer-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:16px;
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 18px 50px rgba(2,4,6,0.6);
+  overflow:hidden;
+  transform-style:preserve-3d;
+  perspective: 1200px;
+  transition: transform .45s cubic-bezier(.2,.9,.2,1), box-shadow .45s ease;
+  will-change: transform;
+  position:relative;
+  padding-bottom:18px;
+  opacity:0; transform:translateY(24px) scale(.995);
+}
+
+/* entrance (will be triggered by JS) */
+.trainer-card.visible{ opacity:1; transform:translateY(0) scale(1); }
+
+/* Image area */
+.trainer-img {
+  height:260px;
+  overflow:hidden;
+  border-radius:12px;
+  margin:18px;
+  box-shadow: inset 0 -40px 80px rgba(0,0,0,0.55);
+  transition: transform .9s cubic-bezier(.2,.9,.2,1);
+}
+.trainer-img img {
+  width:100%; height:100%; object-fit:cover; display:block; transition: transform .9s cubic-bezier(.2,.9,.2,1), filter .6s ease;
+  transform-origin:center center;
+  filter:contrast(.98) saturate(1.03);
+}
+
+/* Info */
+.trainer-info{ padding:10px 20px 24px; text-align:left; }
+.trainer-info h4{ margin:6px 0; font-size:1.05rem; font-weight:800 }
+.trainer-info .spec{ color:var(--accent); font-weight:700; font-size:.92rem; margin-bottom:8px}
+.trainer-info .bio-preview{ color:var(--muted); line-height:1.45; font-size:.95rem; margin-bottom:10px; position:relative; overflow:hidden; }
+
+/* collapsible text */
+.bio-full { max-height:0; overflow:hidden; transition: max-height .45s cubic-bezier(.2,.9,.2,1), opacity .35s ease; opacity:0; }
+.trainer-card.expanded .bio-full { opacity:1; max-height:320px; }
+
+/* Read more button (link style) */
+.read-toggle {
+  background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;padding:6px 8px;border-radius:8px;
+  transition: color .25s ease, transform .12s ease;
+}
+.read-toggle:hover{ color:var(--accent-2); transform:translateY(-2px); }
+
+/* Buttons area */
+.actions { display:flex; gap:12px; align-items:center; margin-top:8px; flex-wrap:wrap }
+
+/* ULTRA-REAL METAL BUTTON (grain + micro-shine + specular) */
+.btn-metal-iron{
+  --h:46px; position:relative; display:inline-flex; align-items:center; justify-content:center; padding:0 22px;
+  height:var(--h); min-width:140px; border-radius:999px; font-weight:800; letter-spacing:.4px;
+  color:#efefef; background:linear-gradient(180deg,#161618 0%,#0d0d0e 60%,#070707 100%);
+  border:1px solid rgba(255,255,255,0.03); box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 18px 40px rgba(0,0,0,0.6);
+  overflow:hidden; cursor:pointer; transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s ease;
+}
+.btn-metal-iron .label{ position:relative; z-index:5 }
+.btn-metal-iron::after{
+  content:""; position:absolute; inset:2px; border-radius:999px; pointer-events:none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.36)); mix-blend-mode:overlay;
+  z-index:4;
+}
+.btn-metal-iron::before{
+  content:""; position:absolute; inset:0; z-index:3; pointer-events:none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay; opacity:0.55;
+  background-size:120px 120px;
+}
+.btn-metal-iron .sweep{
+  position:absolute; top:-140%; left:-40%; width:38%; height:320%; z-index:6;
+  background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%);
+  transform:skewX(-28deg); filter:blur(6px); opacity:0; transition: left .75s cubic-bezier(.22,.9,.29,1), opacity .3s ease;
+  mix-blend-mode:screen;
+}
+.btn-metal-iron:hover .sweep{ left:120%; opacity:1; }
+.btn-metal-iron .micro {
+  position:absolute; inset:0; z-index:2; pointer-events:none;
+  background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.10) 0 2%, rgba(255,255,255,0.03) 6%, transparent 22%);
+  mix-blend-mode:screen; opacity:0; transition:opacity .18s linear;
+}
+.btn-metal-iron:hover .micro{ opacity:1; }
+
+.trainer-card:hover{ transform: translateY(-12px) scale(1.01); box-shadow: 0 40px 90px rgba(0,0,0,0.65) }
+.trainer-card.tilt { transition: transform .12s ease; transform-origin:center; }
+
+.small-muted{ color:var(--muted); font-size:.92rem }
+
+@media (max-width:980px){ .trainer-img{ height:220px } }
+@media (max-width:680px){ .trainer-info h4{ font-size:1rem } .trainer-card{ padding-bottom:14px } }
+@media (prefers-reduced-motion:reduce){ *{ animation:none!important; transition:none!important } .btn-metal-iron .sweep, .btn-metal-iron .micro{ display:none } }
+</style>
+
+<!-- HERO -->
+<section class="trainers-hero" role="region" aria-label="Trainers header">
+  <div class="wrap">
+    <br><br>
+    <h1>Meet Our Elite Trainers</h1>
+    <p class="lead">Expert coaches — each a specialist in their domain. Click "Read more" to see full bios and book sessions.</p>
+  </div>
+</section>
+
+<!-- GRID - NOW LOOPS THROUGH DATABASE -->
+<main class="container" role="main">
+  <div class="trainers-grid" aria-live="polite">
+    {% for trainer in trainers %}
+    <article class="trainer-card" data-index="{{ forloop.counter0 }}" tabindex="0" aria-expanded="false">
+      <div class="trainer-img">
+        <img loading="lazy" src="{{ trainer.image_url }}" alt="{{ trainer.name }} - {{ trainer.specialization }}">
+      </div>
+      <div class="trainer-info">
+        <h4>{{ trainer.name }}</h4>
+        <div class="spec">{{ trainer.specialization }}</div>
+        <div class="bio-preview">
+          {{ trainer.bio_short }}
+          <div class="bio-full">
+            <p>{{ trainer.bio_full }}</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="read-toggle" aria-controls="bio-{{ forloop.counter0 }}">Read more</button>
+          <button class="btn-metal-iron" aria-label="Book session with {{ trainer.name }}">
+            <span class="label">Book Session</span>
+            <span class="sweep" aria-hidden="true"></span>
+            <span class="micro" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </article>
+    {% empty %}
+    <div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--muted);">
+      <p>No trainers available yet. Add trainers in the admin panel.</p>
+    </div>
+    {% endfor %}
+  </div>
+</main>
+
+<!-- JS: lazy load, stagger reveal, tilt, read-more, button micro-shine -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const cards = Array.from(document.querySelectorAll('.trainer-card'));
+  const imgs = document.querySelectorAll('.trainer-img img');
+
+  /* IntersectionObserver for staggered reveal */
+  const io = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const delay = parseInt(el.dataset.index,10) * 90;
+        setTimeout(()=> el.classList.add('visible'), delay);
+        obs.unobserve(el);
+      }
+    });
+  }, {threshold: 0.12});
+  cards.forEach(c => io.observe(c));
+
+  /* 3D tilt (pointer) */
+  cards.forEach(card => {
+    const rect = () => card.getBoundingClientRect();
+    card.addEventListener('pointermove', e => {
+      const r = rect();
+      const px = (e.clientX - r.left) / r.width;
+      const py = (e.clientY - r.top) / r.height;
+      const rx = (py - 0.5) * 6;
+      const ry = (px - 0.5) * -8;
+      card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(8px)`;
+      card.classList.add('tilt');
+      const img = card.querySelector('.trainer-img img');
+      if (img) img.style.transform = `translateZ(20px) scale(1.06) translate(${(px-0.5)*6}px, ${(py-0.5)*6}px)`;
+    });
+    card.addEventListener('pointerleave', () => {
+      card.style.transform = '';
+      card.classList.remove('tilt');
+      const img = card.querySelector('.trainer-img img');
+      if (img) img.style.transform = '';
+    });
+  });
+
+  /* Read more toggle */
+  document.querySelectorAll('.read-toggle').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.trainer-card');
+      const expanded = card.classList.toggle('expanded');
+      card.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      btn.textContent = expanded ? 'Read less' : 'Read more';
+    });
+  });
+
+  /* Button micro-shine */
+  document.querySelectorAll('.btn-metal-iron').forEach(btn => {
+    const micro = btn.querySelector('.micro');
+    btn.addEventListener('pointermove', e => {
+      const r = btn.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 100;
+      const y = ((e.clientY - r.top) / r.height) * 100;
+      btn.style.setProperty('--mx', x + '%');
+      btn.style.setProperty('--my', y + '%');
+      if (micro) micro.style.opacity = '1';
+    });
+    btn.addEventListener('pointerleave', () => {
+      if (micro) micro.style.opacity = '0';
+    });
+    btn.addEventListener('click', (e) => {
+      btn.animate([{ transform:'translateY(-2px) scale(1.01)' }, { transform:'translateY(0) scale(1)' }], { duration:200 });
+    });
+  });
+
+  /* Reduced motion */
+  try {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      cards.forEach(c => { c.style.transition = 'none'; });
+    }
+  } catch (e) {}
+});
+</script>
+{% endblock %}

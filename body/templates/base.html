@@ -1,0 +1,322 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>{% block title %}Gym-SHIM{% endblock %}</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  {% block head_meta %}{% endblock %}
+
+  <style>
+    :root {
+      --bg:#080808;
+      --text:#e9eaee;
+      --muted:#bcbec4;
+      --accent:#ffb400;
+      --accent-2:#ff7a00;
+      --glass: rgba(255,255,255,.05);
+      --maxw:1200px;
+      --radius:14px;
+      --shadow-xl:0 18px 60px rgba(0,0,0,.6);
+
+      /* fluid typography */
+      --fs-base: clamp(15px, 3.8vw, 18px);
+      --fs-lg: clamp(18px, 4.5vw, 22px);
+      --fs-xl: clamp(22px, 6vw, 30px);
+      --fs-xxl: clamp(32px, 7.5vw, 46px);
+
+      --section-pad: clamp(40px, 8vw, 100px);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;font-size:var(--fs-base)}
+    body{
+      min-height:100%;
+      font-family:'Poppins', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+      line-height:1.5;
+    }
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block;height:auto}
+
+    .container{
+      max-width:var(--maxw);
+      margin:0 auto;
+      padding:0 16px;
+    }
+    
+
+    .hero.section {
+  padding-top: 0px;
+}
+
+
+    /* NAVIGATION */
+    .site-nav{
+      position:fixed;top:0;left:0;right:0;z-index:1000;
+      backdrop-filter:blur(8px);
+      background:rgba(0,0,0,.55);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      transition:all .35s ease;
+    }
+    .site-nav .wrap{
+      height:64px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .logo{font-weight:800;font-size:var(--fs-lg)}
+    .logo .accent{color:var(--accent)}
+    
+    /* Desktop nav */
+    .nav-links{display:flex;gap:18px;align-items:center}
+    .nav-links a{padding:6px 10px;border-radius:6px;font-weight:600;transition:color .25s,transform .25s}
+    .nav-links a:hover{color:var(--accent);transform:translateY(-2px)}
+
+    /* Mobile nav */
+    .hamburger{
+      display:none;
+      width:32px;height:24px;
+      flex-direction:column;
+      justify-content:space-between;
+      cursor:pointer;
+      background:none;border:none;
+    }
+    .hamburger span{
+      height:3px;width:100%;
+      background:var(--text);
+      border-radius:2px;
+      transition:.3s;
+    }
+    @media(max-width:940px){
+      .nav-links{display:none}
+      .hamburger{display:flex}
+    }
+
+    /* Slide-out mobile menu */
+    #mobileOverlay{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.55);
+      backdrop-filter:blur(4px);
+      z-index:1400;
+      opacity:0;visibility:hidden;
+      transition:opacity .35s ease;
+    }
+    #mobileOverlay.active{opacity:1;visibility:visible}
+
+    #mobileMenu{
+      position:fixed;top:0;right:-100%;bottom:0;
+      width:70%;max-width:320px;
+      background:#111;
+      z-index:1500;
+      display:flex;flex-direction:column;
+      padding:80px 24px;
+      gap:20px;
+      transition:right .35s ease;
+      box-shadow: -8px 0 24px rgba(0,0,0,.6);
+    }
+    #mobileMenu.open{right:0}
+    #mobileMenu a{
+      font-size:var(--fs-lg);
+      padding:12px 0;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      transition:color .3s;
+    }
+    #mobileMenu a:hover{color:var(--accent)}
+
+    #mobileMenu .close-btn{
+      position:absolute;
+      top:18px;right:18px;
+      font-size:1.8rem;
+      color:var(--text);
+      cursor:pointer;
+      background:none;
+      border:none;
+      line-height:1;
+      transition:transform .25s;
+    }
+    #mobileMenu .close-btn:hover{transform:rotate(90deg);color:var(--accent)}
+
+    /* Buttons */
+    .btn-metal{
+      --h:44px;
+      display:inline-flex;align-items:center;justify-content:center;
+      height:var(--h);padding:0 22px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:0.95rem;
+      background:linear-gradient(180deg,#2c2c2f 0%,#131314 55%,#080808 100%);
+      border:1px solid rgba(255,255,255,.06);
+      color:#f2f2f3;
+      cursor:pointer;
+      transition:transform .25s, box-shadow .25s;
+    }
+    .btn-metal:hover{transform:translateY(-2px)}
+    .btn-accent{background:linear-gradient(180deg,#ffb400,#ff7a00);color:#000;font-weight:800}
+
+    /* Footer */
+    footer{
+      background:#000;
+      padding:32px 20px;
+      text-align:center;
+      font-size:0.85rem;
+      color:#a7a7aa;
+      margin-top:40px;
+    }
+
+    /* RESPONSIVENESS */
+    @media(max-width:600px){
+      .site-nav .wrap{height:56px}
+      .logo{font-size:var(--fs-base)}
+      .btn-metal{--h:40px;padding:0 18px;font-size:0.85rem}
+      footer{font-size:0.75rem}
+      .section{padding:clamp(28px, 6vw, 60px) 0}
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <a class="sr-only" href="#main">Skip to content</a>
+
+  <!-- NAV -->
+  <nav class="site-nav">
+    <div class="container wrap">
+      <a href="{% url 'body:home' %}" class="logo">GYM-<span class="accent">SHIM</span></a>
+
+      <div class="nav-links">
+        <a href="{% url 'body:home' %}">Home</a>
+        <a href="{% url 'body:about' %}">About</a>
+        <a href="{% url 'body:plans' %}">Plans</a>
+        <a href="{% url 'body:trainers' %}">Trainers</a>
+        <a href="{% url 'body:gallery' %}">Gallery</a>
+        <a href="{% url 'body:contact' %}">Contact</a>
+        <a href="{% url 'body:profile' %}">Profile</a>
+        <a href="{% url 'body:admission_form' %}" class="btn-metal btn-accent">Join</a>
+      </div>
+
+      <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <!-- Mobile Overlay -->
+  <div id="mobileOverlay"></div>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu">
+    <button class="close-btn" aria-label="Close menu">&times;</button>
+    <a href="{% url 'body:home' %}">Home</a>
+    <a href="{% url 'body:about' %}">About</a>
+    <a href="{% url 'body:plans' %}">Plans</a>
+    <a href="{% url 'body:trainers' %}">Trainers</a>
+    <a href="{% url 'body:gallery' %}">Gallery</a>
+    <a href="{% url 'body:contact' %}">Contact</a>
+    <a href="{% url 'body:profile' %}">Profile</a>
+    <a href="{% url 'body:admission_form' %}" class="btn-metal btn-accent">Join Now</a>
+  </div>
+
+  <!-- MAIN -->
+  <main id="main" class="section">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <p>&copy; {{ now|date:"Y" }} GYM-SHIM — Strength · Discipline · Transformation.</p>
+    </div>
+  </footer>
+
+  <!-- GSAP loader -->
+  <script>
+    (function(){
+      function loadScript(src,cb){
+        const s=document.createElement('script');
+        s.src=src;s.onload=cb;s.onerror=cb;
+        document.head.appendChild(s);
+      }
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js',()=>{
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js',initAnimations);
+      });
+    })();
+
+    function initAnimations(){
+      // Section fade + slide-in
+      gsap.utils.toArray('.section').forEach((sec,i)=>{
+        gsap.from(sec,{
+          opacity:0,
+          y:60,
+          duration:1.2,
+          ease:"power3.out",
+          scrollTrigger:{
+            trigger:sec,
+            start:"top 85%",
+            once:true
+          }
+        });
+
+        // Animate child elements inside section with stagger
+        gsap.from(sec.querySelectorAll('h1,h2,h3,p,img,.btn-metal'),{
+          opacity:0,
+          y:30,
+          duration:1,
+          stagger:0.15,
+          ease:"power2.out",
+          scrollTrigger:{
+            trigger:sec,
+            start:"top 80%",
+            once:true
+          }
+        });
+      });
+    }
+  </script>
+
+  <!-- Global scripts -->
+  <script>
+    (function(){
+      const nav=document.querySelector('.site-nav');
+      window.addEventListener('scroll',()=>{
+        if(window.scrollY>6) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
+      },{passive:true});
+
+      const burger=document.querySelector('.hamburger');
+      const panel=document.getElementById('mobileMenu');
+      const overlay=document.getElementById('mobileOverlay');
+      const closeBtn=panel.querySelector('.close-btn');
+
+      function openMenu(){
+        panel.classList.add('open');
+        overlay.classList.add('active');
+        document.body.style.overflow='hidden';
+      }
+      function closeMenu(){
+        panel.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.style.overflow='';
+      }
+
+      burger.addEventListener('click',openMenu);
+      closeBtn.addEventListener('click',closeMenu);
+      overlay.addEventListener('click',closeMenu);
+
+      panel.addEventListener('click',(e)=>{
+        if(e.target.tagName==='A') closeMenu();
+      });
+    })();
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About — GYM-SHIM{% endblock %}
+
+{% block content %}
+<!-- Premium About Page — cinematic, animated, interactive -->
+<style>
+:root{
+  --bg:#040405; --muted:#d4e9ff;
+  --accent:#ff6a00; --accent-2:#ffd366;
+  --glass: rgba(255,255,255,0.04); --card: rgba(255,255,255,0.02);
+  --text:#eef1f4;
+}
+
+/* ---- layout reset (scoped) ---- */
+.about-hero, .about-main { width:100%; box-sizing:border-box }
+*{box-sizing:border-box}
+a{color:inherit}
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+
+/* ---- HERO (video, overlays, particle grain) ---- */
+.about-hero{
+  position:relative;height:72vh;min-height:520px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:#000;
+}
+.about-hero video, .about-hero .poster{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;
+}
+.about-hero .poster{ background-size:cover;background-position:center }
+.about-hero .overlay{
+  position:absolute;inset:0;z-index:2;
+  background:
+    radial-gradient(900px 600px at 90% 20%, rgba(255,255,255,0.02), transparent 8%),
+    linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.6));
+  mix-blend-mode:normal;
+}
+.about-hero .vignette{ position:absolute;inset:0;z-index:3;pointer-events:visibleStroke; background:radial-gradient(1200px 500px at 50% 40%, rgba(0,0,0,0.0), rgba(0,0,0,0.5));}
+
+/* hero content */
+.hero-inner{position:relative;z-index:4;text-align:center;padding:40px 20px;color:var(--text)}
+.hero-inner h1{font-family: 'Playfair Display', serif;font-size:clamp(34px,6vw,64px);margin:0 0 10px;line-height:0.95}
+.hero-inner p{color:var(--muted);font-size:1.05rem;max-width:900px;margin:0 auto}
+
+/* CTA metallic button (ultra-real) */
+.btn-metal {
+  --h:56px; display:inline-grid;place-items:center;padding:0 28px;height:var(--h);border-radius:999px;
+  font-weight:900;letter-spacing:0.35px;color:#f7f7f7;background:linear-gradient(180deg,#1e2738 0%,#060607 70%);
+  border:1px solid rgba(255,255,255,0.03);position:relative;overflow:hidden;cursor:pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.699), 0 18px 50px rgba(0,0,0,0.6);
+  transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s ease, filter .28s ease;
+  -webkit-font-smoothing:antialiased;
+}
+.btn-metal .label{position:relative;z-index:6}
+.btn-metal:active{transform:translateY(-2px) scale(.997)}
+/* etched rim */
+.btn-metal::after{content:"";position:absolute;inset:2px;border-radius:999px;pointer-events:none;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.36));mix-blend-mode:overlay;z-index:5}
+/* grain texture (inline SVG noise) */
+.btn-metal::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='f'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.06'/%3E%3C/svg%3E");mix-blend-mode:overlay;opacity:0.6;background-size:120px 120px}
+/* specular sweep */
+.btn-metal .sweep{position:absolute;top:-140%;left:-40%;width:38%;height:320%;z-index:6;background:linear-gradient(90deg,transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%);transform:skewX(-28deg);filter:blur(8px);opacity:0;transition:left .8s cubic-bezier(.22,.9,.29,1),opacity .3s ease;mix-blend-mode:screen}
+.btn-metal:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 30px 80px rgb(0, 0, 0)}
+.btn-metal:hover .sweep{left:120%;opacity:5}
+/* pointer-follow micro highlight */
+.btn-metal .micro{position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.10) 0 2%, rgba(255,255,255,0.03) 6%, transparent 22%);mix-blend-mode:screen;opacity:0;transition:opacity .18s linear}
+.btn-metal:hover .micro{opacity:1}
+
+/* ---- MAIN CONTENT: glass cards, grid, timeline, testimonials ---- */
+.about-main{background:linear-gradient(180deg,#070708,#0b0b0c);padding:64px 0 120px;color:var(--text)}
+.section-title{font-size:1.9rem;text-align:center;margin-bottom:18px;font-weight:800}
+.lead-muted{color:var(--muted);text-align:center;margin-bottom:28px}
+
+/* features grid */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1200px;margin:0 auto 44px;padding:0 20px}
+.feature-card{background:var(--card);border-radius:14px;padding:18px;border:1px solid rgba(255,255,255,0.03);backdrop-filter:blur(8px);box-shadow:0 18px 40px rgba(0,0,0,0.6);transition:transform .45s cubic-bezier(.2,.9,.2,1),box-shadow .35s}
+.feature-card:hover{transform:translateY(-12px);box-shadow:0 40px 90px rgba(0,0,0,0.65)}
+.feature-media{height:170px;border-radius:10px;overflow:hidden;margin-bottom:12px}
+.feature-media img{width:100%;height:100%;object-fit:cover;transition:transform .9s}
+.feature-card:hover .feature-media img{transform:scale(1.06)}
+
+/* timeline */
+.timeline{max-width:1100px;margin:36px auto 48px;padding:0 20px;position:relative}
+.timeline .line{position:absolute;left:50%;top:30px;bottom:20px;width:3px;background:linear-gradient(180deg,var(--accent),var(--accent-2));transform:translateX(-50%);border-radius:2px;opacity:.08}
+.timeline-item{position:relative;width:50%;padding:30px 24px;box-sizing:border-box}
+.timeline-item.left{left:0;text-align:right}
+.timeline-item.right{left:50%}
+.timeline-item .card{display:inline-block;max-width:460px;background:var(--card);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 14px 40px rgba(0,0,0,0.55);transition:transform .45s}
+.timeline-item .dot{position:absolute;top:46px;right:-11px;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent-2));box-shadow:0 6px 20px rgba(255,110,30,0.14)}
+.timeline-item.right .dot{left:-11px;right:auto}
+
+/* testimonials slider */
+.testimonials{max-width:1000px;margin:40px auto 0;padding:0 20px}
+.slider{position:relative;overflow:hidden;border-radius:14px}
+.slider-track{display:flex;transition:transform .7s cubic-bezier(.2,.9,.2,1)}
+.slide{min-width:100%;box-sizing:border-box;padding:34px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));display:flex;gap:18px;align-items:center}
+.slide .photo{width:92px;height:92px;border-radius:50%;overflow:hidden;flex:0 0 92px}
+.slide .photo img{width:100%;height:100%;object-fit:cover}
+.slide .quote{color:var(--muted)}
+.slider-controls{display:flex;gap:10px;justify-content:center;margin-top:12px}
+
+/* stats counters */
+.stats{display:flex;gap:28px;justify-content:center;margin-top:28px;flex-wrap:wrap}
+.stat{ text-align:center }
+.stat .num{font-weight:900;font-size:28px}
+.stat .label{color:var(--muted)}
+
+/* responsive */
+@media (max-width:980px){ .features-grid{grid-template-columns:repeat(2,1fr)} .timeline .line{left:10px} .timeline-item{width:100%;left:0;padding-left:44px;text-align:left}.timeline-item.left{text-align:left} }
+@media (max-width:640px){ .features-grid{grid-template-columns:1fr} .hero-inner h1{font-size:28px} .timeline .line{display:none} }
+
+/* reduced motion */
+@media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} .btn-metal .sweep,.btn-metal .micro{display:none} }
+</style>
+
+<!-- HERO -->
+<section class="about-hero" aria-label="About hero">
+  <video autoplay muted loop playsinline poster="{% static 'body/img/img4.png' %}">
+    <source src="{% static 'body/video/about_bg.mp4' %}" type="video/mp4">
+  </video>
+  
+  <div class="overlay" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <div class="hero-inner">
+    <h1>GYM‑SHIM — Built for Performance</h1>
+    <p class="lead-muted">We combine science, coaching and hospitality to craft the most effective gym experience. From athletes to absolute beginners — every program is built around people, progress and safety.</p>
+
+    <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-metal" id="btn-join">
+        <span class="label">Join Our Community</span>
+        <span class="sweep" aria-hidden="true"></span>
+        <span class="micro" aria-hidden="true"></span>
+      </button>
+      <a href="{% url 'body:plans' %}" class="btn-metal" style="background:linear-gradient(180deg,#111214,#0b0b0c);">
+        <span class="label">View Memberships</span>
+        <span class="sweep" aria-hidden="true"></span>
+        <span class="micro" aria-hidden="true"></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<main class="about-main" id="aboutMain">
+  <div class="container">
+    <h2 class="section-title">What makes GYM‑SHIM premium</h2>
+    <p class="lead-muted">A boutique experience at scale: elite coaches, measurable programming, premium recovery and a community that actually supports your goals.</p>
+
+    <!-- FEATURES -->
+    <div class="features-grid" id="features">
+      <div class="feature-card" data-idx="0">
+        <div class="feature-media"><img data-src="https://i.pinimg.com/1200x/99/56/54/99565401779a5805b3edc18f4ffe6f97.jpg" alt="World-class equipment" loading="lazy"></div>
+        <h3>World-Class Equipment</h3>
+        <p>Olympic platforms, calibrated machines and athlete-grade conditioning rigs — maintained daily and rotated with the latest tech.</p>
+      </div>
+
+      <div class="feature-card" data-idx="1">
+        <div class="feature-media"><img data-src="https://i.pinimg.com/1200x/d1/70/4d/d1704d7aaa803fd589543284e2e36855.jpg" alt="Expert coaching" loading="lazy"></div>
+        <h3>Expert Coaching</h3>
+        <p>Certified coaches using evidence-backed programming and real-time feedback to speed progress and reduce injury.</p>
+      </div>
+
+      <div class="feature-card" data-idx="2">
+        <div class="feature-media"><img data-src="https://i.pinimg.com/736x/2e/3b/d5/2e3bd573ab76396724281cdd0567067c.jpg" alt="Recovery & wellness" loading="lazy"></div>
+        <h3>Recovery & Wellness</h3>
+        <p>Contrast therapy, infrared saunas and dedicated recovery suites — because progress happens outside the training session too.</p>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline" aria-hidden="false">
+      <div class="line"></div>
+
+      <div class="timeline-item left" data-idx="0">
+        <div class="card">
+          <strong>2016</strong>
+          <p style="margin-top:6px">GYM‑SHIM founded by performance coaches — first location with 120 members.</p>
+        </div>
+        <div class="dot" aria-hidden="true"></div>
+      </div>
+
+      <div class="timeline-item right" data-idx="1">
+        <div class="card">
+          <strong>2018</strong>
+          <p style="margin-top:6px">Expanded to second location; introduced small-group performance classes and testing labs.</p>
+        </div>
+        <div class="dot" aria-hidden="true"></div>
+      </div>
+
+      <div class="timeline-item left" data-idx="2">
+        <div class="card">
+          <strong>2021</strong>
+          <p style="margin-top:6px">Launched online coaching platform — members worldwide followed our 12-week transformations.</p>
+        </div>
+        <div class="dot" aria-hidden="true"></div>
+      </div>
+
+      <div class="timeline-item right" data-idx="3">
+        <div class="card">
+          <strong>2024</strong>
+          <p style="margin-top:6px">Completed VIP flagship with recovery spa and athlete performance center.</p>
+        </div>
+        <div class="dot" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats" id="stats">
+      <div class="stat"><div class="num" data-target="12">0</div><div class="label">Years of Coaching</div></div>
+      <div class="stat"><div class="num" data-target="450">0</div><div class="label">Active Members</div></div>
+      <div class="stat"><div class="num" data-target="34">0</div><div class="label">Certified Trainers</div></div>
+    </div>
+
+    <!-- TESTIMONIALS -->
+    <section class="testimonials" aria-labelledby="testiTitle">
+      <h3 id="testiTitle" style="text-align:center;margin-top:40px;margin-bottom:18px">What members say</h3>
+
+      <div class="slider" id="slider">
+        <div class="slider-track" id="track">
+          <div class="slide">
+            <div class="photo"><img data-src="https://i.pinimg.com/1200x/7f/8f/ef/7f8fef9e4b98ee28c5111284147429a1.jpg" alt="Member A" loading="lazy"></div>
+            <div>
+              <strong>Riya S.</strong>
+              <p class="quote">"I gained so much strength and confidence — the coaches built a plan just for me. Recovery suite is next level."</p>
+            </div>
+          </div>
+
+          <div class="slide">
+            <div class="photo"><img data-src="https://i.pinimg.com/736x/ee/29/22/ee2922c28e22b0f991803f4f2f31ad72.jpg" alt="Member B" loading="lazy"></div>
+            <div>
+              <strong>Arjun K.</strong>
+              <p class="quote">"Structured progression and accountability changed my training — I'm leaner and stronger than ever."</p>
+            </div>
+          </div>
+
+          <div class="slide">
+            <div class="photo"><img data-src="https://i.pinimg.com/736x/2c/f2/37/2cf237af056571e91a807bc67ffeb811.jpg" alt="Member C" loading="lazy"></div>
+            <div>
+              <strong>Meera P.</strong>
+              <p class="quote">"The nutrition coaching actually fits my life. I can keep up with work and family while getting real results."</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slider-controls" id="sliderControls" aria-hidden="false">
+        <button class="btn-metal" id="prev">‹</button>
+        <button class="btn-metal" id="next">›</button>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div style="text-align:center;margin-top:42px">
+      <button class="btn-metal" id="btn-visit"><span class="label">Visit Our Flagship</span><span class="sweep" aria-hidden="true"></span><span class="micro" aria-hidden="true"></span></button>
+    </div>
+  </div>
+</main>
+
+<!-- JS behavior: reveal, counters, slider, button microshine, reduced-motion checks -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Reduced motion
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // lazy load images: pull data-src into src
+  document.querySelectorAll('[data-src]').forEach(img => { img.src = img.dataset.src; img.removeAttribute('data-src'); });
+
+  // stagger reveal for feature cards and timeline items
+  const revealEls = [...document.querySelectorAll('.feature-card'), ...document.querySelectorAll('.timeline-item')];
+  const revealObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const delay = (parseInt(el.dataset.idx || 0) * 120);
+        setTimeout(()=> el.querySelector('.card') ? el.querySelector('.card').classList.add('visible') : el.classList.add('visible'), delay);
+        // animate by adding style directly for simpler control
+        el.style.transition = 'transform .7s cubic-bezier(.2,.9,.2,1), opacity .7s ease';
+        el.style.opacity = 1;
+        el.style.transform = 'translateY(0)';
+        obs.unobserve(el);
+      }
+    });
+  }, {threshold:0.12});
+  document.querySelectorAll('.feature-card').forEach((c,i)=> { c.style.opacity=0; c.style.transform='translateY(30px)'; c.dataset.idx=i; revealObserver.observe(c); });
+  document.querySelectorAll('.timeline-item').forEach((t,i)=> { t.style.opacity=0; t.style.transform='translateY(18px)'; t.dataset.idx=i; revealObserver.observe(t); });
+
+  // animated counters
+  const counters = document.querySelectorAll('.num');
+  const counterObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = +el.dataset.target;
+        if (!isNaN(target)) {
+          let cur = 0;
+          const step = Math.max(1, Math.floor(target / 80));
+          const id = setInterval(()=> {
+            cur += step;
+            if (cur >= target) { el.textContent = target; clearInterval(id); }
+            else el.textContent = cur;
+          }, 14);
+        }
+        obs.unobserve(el);
+      }
+    });
+  }, {threshold:0.6});
+  counters.forEach(c => counterObserver.observe(c));
+
+  // testimonials slider (tiny)
+  const track = document.getElementById('track');
+  const slides = track.children;
+  let idx = 0;
+  function goTo(i) {
+    idx = (i + slides.length) % slides.length;
+    track.style.transform = `translateX(${-idx * 100}%)`;
+  }
+  document.getElementById('prev').addEventListener('click', ()=> goTo(idx-1));
+  document.getElementById('next').addEventListener('click', ()=> goTo(idx+1));
+  // autoplay
+  let autoplay = setInterval(()=> goTo(idx+1), 5000);
+  [document.getElementById('prev'), document.getElementById('next')].forEach(btn => {
+    btn.addEventListener('pointerenter', ()=> clearInterval(autoplay));
+    btn.addEventListener('pointerleave', ()=> autoplay = setInterval(()=> goTo(idx+1), 5000));
+  });
+
+  // button micro-shine pointer-follow
+  document.querySelectorAll('.btn-metal').forEach(btn => {
+    const micro = btn.querySelector('.micro');
+    btn.addEventListener('pointermove', e => {
+      const r = btn.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 100;
+      const y = ((e.clientY - r.top) / r.height) * 100;
+      btn.style.setProperty('--mx', x + '%');
+      btn.style.setProperty('--my', y + '%');
+      if (micro) micro.style.opacity = '1';
+    });
+    btn.addEventListener('pointerleave', ()=> { if (micro) micro.style.opacity = '0'; });
+    btn.addEventListener('click', ()=> btn.animate([{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:220,fill:'forwards'}));
+  });
+
+  // accessible keyboard for slider
+  document.getElementById('next').addEventListener('keydown', e => { if(e.key==='Enter') goTo(idx+1); });
+  document.getElementById('prev').addEventListener('keydown', e => { if(e.key==='Enter') goTo(idx-1); });
+
+  // initial layout tweaks
+  goTo(0);
+
+  // prevent heavy animations if reduced-motion
+  if (reduced) {
+    document.querySelectorAll('.feature-media img, .slide .photo img').forEach(img=> img.style.transition='none');
+    document.querySelectorAll('.btn-metal .sweep, .btn-metal .micro').forEach(el=> el.style.display='none');
+  }
+});
+</script>
+{% endblock %}

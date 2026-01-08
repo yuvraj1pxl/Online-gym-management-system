@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gallery — GYM-SHIM{% endblock %}
+
+{% block content %}
+<style>
+/* ========== PREMIUM GALLERY STYLES ========== */
+:root{
+  --bg:#050507; --muted:#bfc2c5;
+  --accent:#ff6a00; --accent-2:#ffd366;
+  --card: rgba(255,255,255,0.02);
+  --glass: rgba(255,255,255,0.035);
+  --text:#eef1f4;
+}
+
+/* Page frame */
+.gallery-hero {
+  position:relative;height:54vh;min-height:340px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  background:#000;color:var(--text);
+}
+.gallery-hero video, .gallery-hero .poster { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+.gallery-hero .overlay { position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.6)); z-index:1 }
+.gallery-hero .hero-inner { position:relative; z-index:3; text-align:center; padding:24px 16px }
+
+/* Hero text */
+.hero-inner h1{ font-family: 'Playfair Display', serif; font-size:clamp(28px,5vw,44px); margin:0 0 8px }
+.hero-inner p{ color:var(--muted); margin:0 0 18px }
+
+/* CTA metallic button (ultra-real) */
+.btn-metal {
+  --h:48px; display:inline-grid; place-items:center; padding:0 26px; height:var(--h); border-radius:999px;
+  font-weight:900; color:#f7f7f7; background:linear-gradient(180deg,#0e0e10,#070708); border:1px solid rgba(255,255,255,0.03);
+  position:relative; overflow:hidden; cursor:pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 18px 50px rgba(0,0,0,0.6);
+  transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
+}
+.btn-metal .label{ position:relative; z-index:6 }
+.btn-metal::after{ content:""; position:absolute; inset:2px; border-radius:999px; pointer-events:none; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.36)); z-index:5 }
+.btn-metal::before{ content:""; position:absolute; inset:0; z-index:3; pointer-events:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.95' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"); mix-blend-mode:overlay; opacity:0.6; background-size:120px 120px; }
+.btn-metal .sweep{ position:absolute; top:-140%; left:-40%; width:38%; height:320%; z-index:6; background:linear-gradient(90deg,transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%); transform:skewX(-28deg); filter:blur(8px); opacity:0; transition:left .75s cubic-bezier(.22,.9,.29,1),opacity .3s; mix-blend-mode:screen;}
+.btn-metal:hover{ transform: translateY(-6px) scale(1.02); box-shadow:0 30px 80px rgba(0,0,0,0.7) }
+.btn-metal:hover .sweep{ left:120%; opacity:1 }
+.btn-metal .micro{ position:absolute; inset:0; z-index:2; pointer-events:none; background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.10) 0 2%, rgba(255,255,255,0.03) 6%, transparent 22%); mix-blend-mode:screen; opacity:0; transition:opacity .18s }
+.btn-metal:hover .micro{ opacity:1 }
+
+/* Container */
+.container { max-width:1200px; margin:0 auto; padding:5px 20px 5px }
+
+/* Filters row */
+.filters { display:flex; gap:12px; justify-content:center; margin-bottom:18px; flex-wrap:wrap }
+.filter-btn { background:var(--card); border:1px solid rgba(255,255,255,0.03); padding:8px 12px; border-radius:999px; cursor:pointer; color:var(--muted); transition:transform .18s, background .18s }
+.filter-btn.active { background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#0b0b0b; box-shadow: 0 10px 30px rgba(255,110,30,0.12) }
+
+/* Masonry grid */
+.gallery-grid {
+  column-count:4; column-gap:16px; width:100%;
+  transition: all .6s cubic-bezier(.2,.9,.2,1);
+}
+.gallery-item { break-inside:avoid; margin-bottom:16px; position:relative; overflow:hidden; border-radius:12px; cursor:pointer; transform-origin:center; transition: transform .55s cubic-bezier(.2,.9,.2,1), box-shadow .35s; box-shadow:0 14px 40px rgba(0,0,0,0.5) }
+.gallery-item img { width:100%; height:auto; display:block; object-fit:cover; transition: transform .8s cubic-bezier(.2,.9,.2,1), filter .6s; filter:brightness(.98) saturate(1.02) }
+.gallery-item:hover { transform: translateY(-8px) scale(1.01); box-shadow:0 30px 80px rgba(0,0,0,0.6) }
+.gallery-item .meta { position:absolute; left:12px; bottom:12px; z-index:3; color:#fff; text-shadow:0 6px 22px rgba(0,0,0,0.6); background:linear-gradient(180deg, rgba(0,0,0,0.28), rgba(0,0,0,0.45)); padding:8px 12px; border-radius:8px; font-weight:700; font-size:0.95rem; backdrop-filter: blur(6px) }
+
+/* responsive columns */
+@media (max-width:1200px){ .gallery-grid{ column-count:3 } }
+@media (max-width:900px){ .gallery-grid{ column-count:2 } }
+@media (max-width:560px){ .gallery-grid{ column-count:1 } }
+
+/* Lightbox modal */
+.lb-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:2200; opacity:0; pointer-events:none; transition:opacity .28s }
+.lb-backdrop.open { opacity:1; pointer-events:auto }
+.lb-inner { max-width:1100px; width:96%; max-height:90vh; display:flex; gap:18px; align-items:center }
+.lb-img { flex:1 1 auto; height:80vh; max-height:80vh; overflow:hidden; border-radius:10px; background:#000; display:flex; align-items:center; justify-content:center }
+.lb-img img{ max-width:100%; max-height:100%; object-fit:contain; display:block; transform:translateY(0); transition: transform .6s }
+.lb-info{ width:360px; padding:18px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:10px; color:var(--text); box-shadow:0 26px 80px rgba(0,0,0,0.6) }
+.lb-info h3{ margin:0 0 8px }
+.lb-info p{ color:var(--muted) }
+
+/* Slider (bottom) */
+.mini-slider { margin-top:12px; display:flex; gap:8px; overflow:auto }
+.mini-thumb { width:84px; height:64px; border-radius:8px; overflow:hidden; flex:0 0 auto; cursor:pointer; border:2px solid transparent; transition:transform .18s, border-color .18s }
+.mini-thumb.active { border-color:var(--accent) ; transform:translateY(-6px) }
+
+/* subtle entrance */
+.fade-up { opacity:0; transform:translateY(18px) scale(.995); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.9,.2,1) }
+.fade-up.show { opacity:1; transform:translateY(0) scale(1) }
+
+/* reduced-motion */
+@media (prefers-reduced-motion:reduce){ .gallery-item, .btn-metal, .gallery-grid, .lb-img img { transition:none!important; } .btn-metal .sweep, .btn-metal .micro{ display:none } }
+</style>
+
+<!-- HERO -->
+<section class="gallery-hero" aria-label="Gallery hero">
+  <video autoplay muted loop playsinline poster="{% static 'body/img/gallery_poster.jpg' %}">
+    <source src="{% static 'body/video/video2.mp4' %}" type="video/mp4">
+  </video>
+  <div class="overlay" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <h1>Our Gallery</h1>
+    <p>High-fidelity studio shots, training highlights and member transformations — tap any image to explore in full resolution.</p>
+    <div style="margin-top:14px">
+      <button class="btn-metal" id="openAll"><span class="label">Explore Gallery</span><span class="sweep" aria-hidden="true"></span><span class="micro" aria-hidden="true"></span></button>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main class="container" id="galleryMain" role="main">
+  <!-- filters -->
+  <div class="filters" role="toolbar" aria-label="Filter gallery">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="training">Training</button>
+    <button class="filter-btn" data-filter="equipment">Equipment</button>
+    <button class="filter-btn" data-filter="members">Members</button>
+    <button class="filter-btn" data-filter="events">Events</button>
+  </div>
+
+  <!-- masonry gallery -->
+  <div class="gallery-grid fade-up" id="galleryGrid" aria-live="polite">
+    <!-- Example items: replace src / data-src attributes with your actual images -->
+    <div class="gallery-item" data-category="training" tabindex="0" data-title="Push Day — Intensity" data-description="High-intensity chest & shoulders session.">
+      <img data-src="https://i.pinimg.com/1200x/6b/c8/09/6bc809a2c621357898758653237b0cce.jpg" alt="Gallery 1" loading="lazy">
+      <div class="meta">Training</div>
+    </div>
+
+    <div class="gallery-item" data-category="equipment" tabindex="0" data-title="Olympic Racks" data-description="Competition-grade racks and platforms.">
+      <img data-src="https://i.pinimg.com/736x/a5/b9/02/a5b9020bfd1057d1221cb4c0f895152a.jpg" alt="Gallery 2" loading="lazy">
+      <div class="meta">Equipment</div>
+    </div>
+
+    <div class="gallery-item" data-category="members" tabindex="0" data-title="Member Transformation" data-description="12-week progress captured.">
+      <img data-src="https://i.pinimg.com/1200x/b3/90/b6/b390b62285319aa1ce088c9b2c50a502.jpg" alt="Gallery 3" loading="lazy">
+      <div class="meta">Members</div>
+    </div>
+
+    <div class="gallery-item" data-category="events" tabindex="0" data-title="Community Event" data-description="Charity lifting meet and social event.">
+      <img data-src="https://i.pinimg.com/1200x/ab/e1/51/abe151f0e03a85ef1947fbaac5e44362.jpg" alt="Gallery 4" loading="lazy">
+      <div class="meta">Events</div>
+    </div>
+
+    <div class="gallery-item" data-category="training" tabindex="0" data-title="Functional Training" data-description="Coach-led mobility & functional session.">
+      <img data-src="https://i.pinimg.com/1200x/3f/74/5b/3f745bae25d8e8b619f6bf7cca737d2f.jpg" alt="Gallery 5" loading="lazy">
+      <div class="meta">Training</div>
+    </div>
+
+    <div class="gallery-item" data-category="members" tabindex="0" data-title="Member Spotlight" data-description="Success story & testimonial.">
+      <img data-src="https://i.pinimg.com/1200x/ff/4a/7f/ff4a7f28e203e8b4192b14a92ab021ea.jpg" alt="Gallery 6" loading="lazy">
+      <div class="meta">Members</div>
+    </div>
+
+    <!-- Extra Premium Gallery Items -->
+<div class="gallery-item" data-category="equipment" tabindex="0" data-title="Kettlebell Zone" data-description="Professional-grade kettlebells for strength and conditioning.">
+  <img data-src="https://i.pinimg.com/736x/eb/66/a1/eb66a11e255d4394647c3c867e465f11.jpg" alt="Gallery 7" loading="lazy">
+  <div class="meta">Equipment</div>
+</div>
+
+<div class="gallery-item" data-category="events" tabindex="0" data-title="Fitness Challenge" data-description="Annual gym challenge with massive rewards.">
+  <img data-src="https://i.pinimg.com/736x/7d/cf/2d/7dcf2d7d28d966f30796bfcc078b981d.jpg" alt="Gallery 8" loading="lazy">
+  <div class="meta">Events</div>
+</div>
+
+<div class="gallery-item" data-category="training" tabindex="0" data-title="HIIT Session" data-description="Sweat-dripping high-intensity interval workout.">
+  <img data-src="https://i.pinimg.com/1200x/df/0d/e1/df0de1a56f952d748f654e1e18f8202a.jpg" alt="Gallery 9" loading="lazy">
+  <div class="meta">Training</div>
+</div>
+
+<div class="gallery-item" data-category="nutrition" tabindex="0" data-title="Healthy Fuel Bar" data-description="Post-workout smoothies, shakes, and meals.">
+  <img data-src="https://i.pinimg.com/736x/fe/ce/c9/fecec9f60eb91d941496fecbd9639e1a.jpg" alt="Gallery 10" loading="lazy">
+  <div class="meta">Nutrition</div>
+</div>
+
+<div class="gallery-item" data-category="equipment" tabindex="0" data-title="Cardio Deck" data-description="State-of-the-art treadmills and bikes.">
+  <img data-src="https://i.pinimg.com/1200x/c0/17/60/c01760924cfc783be218da6d340289a3.jpg" alt="Gallery 11" loading="lazy">
+  <div class="meta">Equipment</div>
+</div>
+
+<div class="gallery-item" data-category="members" tabindex="0" data-title="Transformation Journey" data-description="From day 1 to victory pose — real results.">
+  <img data-src="https://i.pinimg.com/736x/0e/b8/7c/0eb87c24b36306a5c6c1d34c6334db09.jpg" alt="Gallery 12" loading="lazy">
+  <div class="meta">Members</div>
+</div>
+
+<div class="gallery-item" data-category="training" tabindex="0" data-title="Yoga Flow" data-description="Mindful movements and flexibility training.">
+  <img data-src="https://i.pinimg.com/736x/ff/29/eb/ff29eb497698e42efbad9c5cbc0876e2.jpg" alt="Gallery 13" loading="lazy">
+  <div class="meta">Training</div>
+</div>
+
+<div class="gallery-item" data-category="events" tabindex="0" data-title="Powerlifting Meet" data-description="Strength athletes showcase their power.">
+  <img data-src="https://i.pinimg.com/736x/74/93/a8/7493a8d02345d614314deba30735e6e9.jpg" alt="Gallery 14" loading="lazy">
+  <div class="meta">Events</div>
+</div>
+
+<div class="gallery-item" data-category="equipment" tabindex="0" data-title="Battle Ropes" data-description="Explosive cardio and strength combo.">
+  <img data-src="https://i.pinimg.com/736x/68/5f/dd/685fdd7a80c478d9e769078927db9586.jpg" alt="Gallery 15" loading="lazy">
+  <div class="meta">Equipment</div>
+</div>
+
+<div class="gallery-item" data-category="members" tabindex="0" data-title="Team Spirit" data-description="Members pushing each other to new limits.">
+  <img data-src="https://i.pinimg.com/736x/22/e3/91/22e3915f07e3547ece6b2072813d51e7.jpg" alt="Gallery 16" loading="lazy">
+  <div class="meta">Members</div>
+</div>
+
+
+    <!-- Add more items as needed; you can also loop through DB images here -->
+  </div>
+</main>
+
+<!-- LIGHTBOX -->
+<div class="lb-backdrop" id="lightbox" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="lb-inner" role="document">
+    <div class="lb-img"><img id="lbImage" src="" alt=""></div>
+    <div class="lb-info">
+      <h3 id="lbTitle">Title</h3>
+      <p id="lbDesc">Description</p>
+      <div class="mini-slider" id="lbThumbs"></div>
+      <div style="margin-top:18px;display:flex;gap:12px;justify-content:flex-end">
+        <a id="lbDownload" class="btn-metal" download><span class="label">Download</span><span class="sweep" aria-hidden="true"></span><span class="micro" aria-hidden="true"></span></a>
+        <button id="lbClose" class="btn-metal"><span class="label">Close</span><span class="sweep" aria-hidden="true"></span><span class="micro" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== GALLERY INTERACTIONS ========== */
+document.addEventListener('DOMContentLoaded', () => {
+  const grid = document.getElementById('galleryGrid');
+  const items = Array.from(grid.querySelectorAll('.gallery-item'));
+  const filters = document.querySelectorAll('.filter-btn');
+  const lb = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lbImage');
+  const lbTitle = document.getElementById('lbTitle');
+  const lbDesc = document.getElementById('lbDesc');
+  const lbThumbs = document.getElementById('lbThumbs');
+  const lbClose = document.getElementById('lbClose');
+  const lbDownload = document.getElementById('lbDownload');
+  const openAllBtn = document.getElementById('openAll');
+
+  // lazy load images (data-src -> src)
+  grid.querySelectorAll('img[data-src]').forEach(img => { img.src = img.dataset.src; img.removeAttribute('data-src'); });
+
+  // entrance animation
+  setTimeout(()=> grid.classList.add('show'), 160);
+
+  // FILTERS
+  filters.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filters.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      items.forEach(it => {
+        if (f === 'all' || it.dataset.category === f) {
+          it.style.display = '';
+          it.classList.add('show');
+        } else {
+          it.style.display = 'none';
+          it.classList.remove('show');
+        }
+      });
+    });
+  });
+
+  // Open lightbox
+  function openLightbox(startIndex=0) {
+    populateThumbs();
+    showThumbAsActive(startIndex);
+    const target = visibleItems()[startIndex] || items[0];
+    openImageElement(target);
+    lb.classList.add('open');
+    lb.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // visible items according to current filter order
+  function visibleItems() {
+    return Array.from(grid.querySelectorAll('.gallery-item')).filter(el => el.style.display !== 'none');
+  }
+
+  // click on gallery item
+  items.forEach((it, i) => {
+    it.addEventListener('click', () => {
+      const visible = visibleItems();
+      const idx = visible.indexOf(it);
+      openLightbox(idx === -1 ? 0 : idx);
+    });
+    it.addEventListener('keydown', e => { if(e.key === 'Enter') it.click(); });
+  });
+
+  // Open All button: open lightbox starting at first visible
+  openAllBtn.addEventListener('click', () => openLightbox(0));
+
+  // populate thumbnails in lightbox with current visible items
+  function populateThumbs() {
+    lbThumbs.innerHTML = '';
+    visibleItems().forEach((el, idx) => {
+      const src = el.querySelector('img').src;
+      const t = document.createElement('div');
+      t.className = 'mini-thumb';
+      if (idx === 0) t.classList.add('active');
+      t.innerHTML = `<img src="${src}" alt="thumb" style="width:100%;height:100%;object-fit:cover">`;
+      t.addEventListener('click', ()=> { openImageIndex(idx); });
+      lbThumbs.appendChild(t);
+    });
+  }
+
+  function showThumbAsActive(i) {
+    const thumbs = Array.from(lbThumbs.children);
+    thumbs.forEach((t, idx) => t.classList.toggle('active', idx === i));
+  }
+
+  // set lightbox image from a gallery item element
+  function openImageElement(el) {
+    const img = el.querySelector('img');
+    const src = img.src;
+    lbImg.src = src;
+    lbTitle.textContent = el.dataset.title || '';
+    lbDesc.textContent = el.dataset.description || '';
+    lbDownload.href = src;
+  }
+
+  // open image by index in visible items
+  function openImageIndex(idx) {
+    const vis = visibleItems();
+    const el = vis[idx];
+    if (!el) return;
+    openImageElement(el);
+    showThumbAsActive(idx);
+  }
+
+  // keyboard navigation in lightbox
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') navigateLightbox(1);
+    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+  });
+
+  function navigateLightbox(dir) {
+    const vis = visibleItems();
+    if (vis.length === 0) return;
+    const curSrc = lbImg.src;
+    const idx = vis.findIndex(el => el.querySelector('img').src === curSrc);
+    let next = (idx + dir + vis.length) % vis.length;
+    openImageIndex(next);
+  }
+
+  function closeLightbox() {
+    lb.classList.remove('open');
+    lb.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  lbClose.addEventListener('click', closeLightbox);
+  lb.addEventListener('click', (e) => { if (e.target === lb) closeLightbox(); });
+
+  // click on mini thumbs
+  lbThumbs.addEventListener('click', (e) => {
+    const t = e.target.closest('.mini-thumb');
+    if (!t) return;
+    const idx = Array.from(lbThumbs.children).indexOf(t);
+    openImageIndex(idx);
+  });
+
+  // add hover zoom effect on main lb image
+  let lbImgElem = document.getElementById('lbImage');
+  lbImgElem.addEventListener('mousemove', (e) => {
+    const r = lbImgElem.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * 100;
+    const y = ((e.clientY - r.top) / r.height) * 100;
+    lbImgElem.style.transform = `translate(${(x-50)/18}%, ${(y-50)/18}%) scale(1.02)`;
+  });
+  lbImgElem.addEventListener('mouseleave', () => lbImgElem.style.transform = '');
+
+  // micro-shine pointer-follow for buttons
+  document.querySelectorAll('.btn-metal').forEach(btn => {
+    const micro = btn.querySelector('.micro');
+    btn.addEventListener('pointermove', e => {
+      const r = btn.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 100;
+      const y = ((e.clientY - r.top) / r.height) * 100;
+      btn.style.setProperty('--mx', x + '%');
+      btn.style.setProperty('--my', y + '%');
+      if (micro) micro.style.opacity = '1';
+    });
+    btn.addEventListener('pointerleave', ()=> { if (micro) micro.style.opacity = '0'; });
+    btn.addEventListener('click', ()=> btn.animate([{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:220}));
+  });
+
+  // initial reveal
+  setTimeout(()=> document.querySelectorAll('.fade-up').forEach(el => el.classList.add('show')), 160);
+
+  // Accessible: if user prefers reduced motion, disable heavy transforms
+  try {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('.gallery-item, .btn-metal, .lb-img img').forEach(el => el.style.transition = 'none');
+    }
+  } catch(e){}
+
+});
+</script>
+{% endblock %}

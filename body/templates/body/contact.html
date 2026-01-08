@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Contact Us — GYM-SHIM{% endblock %}
+
+{% block content %}
+<style>
+/* ===========================
+   Contact — Premium Styles
+   =========================== */
+
+   main{
+    padding-right: 0%;
+   }
+:root{
+  --bg:#050506; --panel: rgba(255,255,255,0.04);
+  --muted:#bfc2c5; --accent:#ff6a00; --accent-2:#ffd366;
+  --glass: rgba(255,255,255,0.03);
+  --text:#eef1f4;
+  --btn-h:56px;
+  --max-width:1100px;
+  --radius:14px;
+}
+
+/* base container */
+.contact-hero {
+  position:relative;
+  height:76vh; min-height:620px;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+  background:linear-gradient(180deg, rgba(0, 0, 0, 0.043), rgba(0,0,0,0.6));
+  color:var(--text);
+}
+
+/* hero media */
+.contact-hero video, .contact-hero .poster { position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+.contact-hero .overlay { position:absolute; inset:0; z-index:1; background: radial-gradient(800px 760px at 8% 20%, rgba(255, 255, 255, 0), transparent 6%), linear-gradient(180deg, rgb(0, 0, 0), rgba(0, 0, 0, 0)); }
+.contact-hero .hero-inner { position:relative; z-index:3; text-align:center; padding:28px 22px; max-width:1200px; }
+
+/* hero text */
+.hero-inner h1{ font-family: "Playfair Display", serif; font-weight:800; font-size:clamp(28px,5vw,48px); margin:0 0 10px; letter-spacing:-0.6px; text-shadow: 0 10px 30px rgba(0, 0, 0, 0.849) }
+.hero-inner p{ color:var(--muted); margin:0; font-size:1.05rem}
+
+/* page layout */
+.main-contact { max-width:var(--max-width); margin: -14px auto 120px; padding:0 18px; display:grid; grid-template-columns: 1fr 420px; gap:28px; align-items:start; }
+
+/* left panel (form) */
+.form-panel {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: var(--radius);
+  padding:28px;
+  border:1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 30px 80px rgb(0, 0, 0);
+  backdrop-filter: blur(8px);
+  position:relative;
+  overflow:hidden;
+}
+
+/* floating labels */
+.field {
+  position:relative; margin-bottom:14px;
+}
+.field input, .field textarea {
+  width:100%; padding:16px 16px 14px 16px; font-size:1rem; background:rgba(255,255,255,0.02);
+  border-radius:10px; border:1px solid rgba(255,255,255,0.03); color:var(--text); outline:none;
+  transition: box-shadow .18s ease, border-color .18s ease, transform .12s;
+}
+.field textarea { min-height:140px; resize:vertical; padding-top:18px; }
+.field label {
+  position:absolute; left:14px; top:12px; font-size:0.9rem; color:var(--muted); pointer-events:none;
+  transition: transform .18s cubic-bezier(.2,.9,.2,1), font-size .18s ease, top .18s ease, color .18s;
+  transform-origin:left top;
+}
+.field input:focus, .field textarea:focus { border-color: rgba(255,255,255,0.12); box-shadow: 0 10px 30px rgba(0,0,0,0.5) inset; }
+.field input:not(:placeholder-shown) + label,
+.field textarea:not(:placeholder-shown) + label,
+.field input:focus + label,
+.field textarea:focus + label {
+  transform: translateY(-10px) scale(.92); top:6px; font-size:0.78rem; color:var(--accent);
+}
+
+/* small helper & error */
+.helper { font-size:0.9rem; color:var(--muted); margin-top:6px }
+.error { color:#ff6666; font-weight:700; margin-top:6px }
+
+/* right column — contact cards & map */
+.side-panel {
+  display:flex; flex-direction:column; gap:16px;
+}
+.contact-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+}
+.contact-card h4{ margin:0 0 6px }
+.contact-card p{ margin:0;color:var(--muted) }
+
+/* map */
+.map-wrap { border-radius:12px; overflow:hidden; height:220px; border:1px solid rgba(255,255,255,0.03) }
+
+/* stats row */
+.stats-row { display:flex; gap:10px; margin-top:8px; flex-wrap:wrap }
+.stat { flex:1 1 120px; background:var(--glass); padding:12px; border-radius:10px; text-align:center; border:1px solid rgba(255,255,255,0.02) }
+.stat .num { font-weight:900; font-size:1.25rem; color:var(--text) }
+.stat .lbl { color:var(--muted); font-size:0.9rem }
+
+/* metallic button - ultra realistic (micro-shine + sweep + grain) */
+.btn-metal {
+  position:relative; display:inline-grid; place-items:center; padding:0 22px; height:var(--btn-h); border-radius:999px;
+  background: linear-gradient(180deg,#111214 0%, #0b0b0d 70%); color:#f3f3f3; font-weight:900; border:1px solid rgba(255,255,255,0.035);
+  overflow:hidden; cursor:pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 22px 60px rgba(0,0,0,0.65);
+  transition: transform .25s cubic-bezier(.2,.9,.2,1), box-shadow .2s ease;
+  -webkit-font-smoothing:antialiased;
+}
+.btn-metal .label{ position:relative; z-index:6; }
+.btn-metal::after{ content:""; position:absolute; inset:2px; border-radius:999px; pointer-events:none; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.36)); z-index:5; mix-blend-mode:overlay }
+.btn-metal::before{ content:""; position:absolute; inset:0; z-index:3; pointer-events:none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.95' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"); mix-blend-mode:overlay; opacity:0.6; background-size:120px 120px }
+.btn-metal .sweep{ position:absolute; top:-140%; left:-40%; width:38%; height:320%; z-index:6; background:linear-gradient(90deg,transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%); transform:skewX(-28deg); filter:blur(8px); opacity:0; transition:left .75s cubic-bezier(.22,.9,.29,1), opacity .28s ease; mix-blend-mode:screen; }
+.btn-metal:hover{ transform: translateY(-6px) scale(1.02); box-shadow: 0 36px 80px rgba(0,0,0,0.66) }
+.btn-metal:hover .sweep{ left:120%; opacity:1 }
+.btn-metal .micro { position:absolute; inset:0; z-index:2; pointer-events:none; background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.10) 0 2%, rgba(255,255,255,0.03) 6%, transparent 22%); mix-blend-mode:screen; opacity:0; transition:opacity .12s linear; }
+.btn-metal:hover .micro{ opacity:1 }
+
+/* notifications / success */
+.toast {
+  position:fixed; right:24px; bottom:28px; background:linear-gradient(180deg,#0d0f11,#050506); color:var(--text);
+  padding:14px 18px; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.03); z-index:9999; opacity:0; transform:translateY(18px); transition:opacity .28s, transform .28s;
+}
+.toast.show { opacity:1; transform:translateY(0) }
+
+/* responsive */
+@media (max-width:1040px) { .main-contact { grid-template-columns: 1fr; margin-top:-32px } .contact-hero{height:48vh} .map-wrap{height:200px} }
+@media (prefers-reduced-motion:reduce) { * { transition:none!important; animation:none!important } .btn-metal .sweep, .btn-metal .micro { display:none } }
+</style>
+
+<!-- HERO -->
+<section class="contact-hero" aria-label="Contact hero">
+  <video autoplay muted loop playsinline poster="{% static 'body/img/contact_poster.jpg' %}">
+    <source src="{% static 'body/video/video3.mp4' %}" type="video/mp4">
+  </video>
+  <div class="overlay" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <h1>Get Help. Book A Tour. Start Your Transformation.</h1>
+    <p>We're here to guide your fitness journey — ask about memberships, training, events, or corporate programs.</p>
+    <div style="margin-top:18px">
+      <a href="{% url 'body:plans' %}" class="btn-metal" role="button" style="margin-right:10px">
+        <span class="label">View Memberships</span>
+        <span class="sweep" aria-hidden="true"></span>
+        <span class="micro" aria-hidden="true"></span>
+      </a>
+      <a href="#contactForm" class="btn-metal" role="button">
+        <span class="label">Contact Us</span>
+        <span class="sweep" aria-hidden="true"></span>
+        <span class="micro" aria-hidden="true"></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN CONTACT LAYOUT -->
+<main class="main-contact" id="contactMain" aria-labelledby="contactHeading">
+  <!-- FORM PANEL -->
+  <section id="contactForm" class="form-panel" aria-labelledby="contactHeading">
+    <h2 id="contactHeading" style="margin:0 0 8px">Send us a message</h2>
+    <p class="helper" style="margin-bottom:18px">Drop a message — we'll respond within 24 hours. For urgent matters call the number on the right.</p>
+
+    <form id="contactFormEl" method="post" novalidate>
+      {% csrf_token %}
+      <div class="field">
+        <input id="name" name="name" type="text" placeholder=" " required autocomplete="name" />
+        <label for="name">Full name</label>
+      </div>
+
+      <div class="field">
+        <input id="email" name="email" type="email" placeholder=" " required autocomplete="email" />
+        <label for="email">Email address</label>
+      </div>
+
+      <div class="field">
+        <input id="phone" name="phone" type="tel" placeholder=" " pattern="[0-9+\-\s()]{7,}" />
+        <label for="phone">Phone (optional)</label>
+      </div>
+
+      <div class="field">
+        <textarea id="message" name="message" placeholder=" " required></textarea>
+        <label for="message">How can we help you?</label>
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:center;margin-top:10px;flex-wrap:wrap">
+        <button id="submitBtn" type="submit" class="btn-metal" aria-live="polite">
+          <span class="label">Send Message</span>
+          <span class="sweep" aria-hidden="true"></span>
+          <span class="micro" aria-hidden="true"></span>
+        </button>
+
+        <div id="formStatus" class="helper" aria-live="polite" style="margin-left:6px"></div>
+      </div>
+    </form>
+
+    <div style="margin-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div class="stat"><div class="num" data-target="12">12</div><div class="lbl">Years coaching</div></div>
+      <div class="stat"><div class="num" data-target="450">450</div><div class="lbl">Active members</div></div>
+      <div class="stat"><div class="num" data-target="34">34</div><div class="lbl">Trainers</div></div>
+    </div>
+  </section>
+
+  <!-- SIDE PANEL -->
+  <aside class="side-panel" aria-label="Contact information">
+    <div class="contact-card" role="region" aria-label="Address and hours">
+      <h4>Visit Us</h4>
+      <p>123 Elite Fitness Street, Muscle City, NY 10001</p>
+      <p style="margin-top:8px;color:var(--muted)">Mon–Fri: 5:00 AM – 11:00 PM<br>Sat–Sun: 6:00 AM – 10:00 PM</p>
+      <div style="margin-top:10px" class="stats-row">
+        <div class="stat"><div class="num">🌟</div><div class="lbl">Flagship</div></div>
+        <div class="stat"><div class="num">🧴</div><div class="lbl">Recovery Spa</div></div>
+      </div>
+    </div>
+
+    <div class="contact-card" role="region" aria-label="Contact">
+      <h4>Contact</h4>
+      <p style="margin-bottom:8px">Phone: <a href="tel:+15551234567" style="color:var(--accent)">+1 (555) 123-4567</a></p>
+      <p>Email: <a href="mailto:support@gymfitness.com" style="color:var(--accent)">support@gymfitness.com</a></p>
+
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <!-- social icons -->
+        <a href="#" aria-label="Instagram" style="text-decoration:none"><img src="{% static 'body/img/insta.png' %}" alt="Instagram" width="34"></a>
+        <a href="#" aria-label="YouTube" style="text-decoration:none"><img src="{% static 'body/img/youtube.png' %}" alt="YouTube" width="34"></a>
+        <a href="#" aria-label="LinkedIn" style="text-decoration:none"><img src="{% static 'body/img/linkedin.png' %}" alt="LinkedIn" width="34"></a>
+      </div>
+    </div>
+
+    <div class="contact-card" role="region" aria-label="Map">
+      <h4>Where to find us</h4>
+      <div class="map-wrap">
+        <!-- OpenStreetMap embed (no API key required) -->
+        <iframe title="GYM-SHIM location" src="https://www.openstreetmap.org/export/embed.html?bbox=-0.09%2C51.505%2C-0.08%2C51.506&amp;layer=mapnik" style="border:0;width:100%;height:100%" loading="lazy"></iframe>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- success toast -->
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">Message sent — we'll be in touch shortly.</div>
+
+<!-- ========== JS: AJAX submit, validation, micro-shine, counters ========== -->
+<script>
+(function(){
+  const form = document.getElementById('contactFormEl');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusEl = document.getElementById('formStatus');
+  const toast = document.getElementById('toast');
+
+  // pointer micro-shine for all metallic buttons
+  document.querySelectorAll('.btn-metal, .btn-metal .label').forEach(btn => {
+    const el = btn.closest('.btn-metal') || btn;
+    el.addEventListener('pointermove', (e) => {
+      const r = el.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 100;
+      const y = ((e.clientY - r.top) / r.height) * 100;
+      el.style.setProperty('--mx', x + '%'); el.style.setProperty('--my', y + '%');
+      const micro = el.querySelector('.micro'); if (micro) micro.style.opacity = '1';
+    });
+    el.addEventListener('pointerleave', () => {
+      const micro = el.querySelector('.micro'); if (micro) micro.style.opacity = '0';
+    });
+  });
+
+  // basic client-side validation
+  function validate() {
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const msg = form.message.value.trim();
+    if (!name || !email || !msg) {
+      statusEl.textContent = 'Please fill name, email and message.';
+      statusEl.className = 'error';
+      return false;
+    }
+    // simple email test
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      statusEl.textContent = 'Please provide a valid email address.';
+      statusEl.className = 'error';
+      return false;
+    }
+    statusEl.textContent = '';
+    statusEl.className = '';
+    return true;
+  }
+
+  // fetch csrf token (Django default cookie name)
+  function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+  }
+
+  // AJAX submit
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.8';
+    statusEl.textContent = 'Sending...'; statusEl.className = 'helper';
+
+    const data = new FormData(form);
+    try {
+      const res = await fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: data
+      });
+      if (!res.ok) throw new Error('Network error');
+      const json = await res.json();
+      if (json.success) {
+        // success animations
+        statusEl.textContent = '';
+        form.reset();
+        showToast('Message sent — thanks! We will contact you within 24 hours.');
+      } else {
+        statusEl.textContent = json.error || 'Submission failed. Try again later.';
+        statusEl.className = 'error';
+      }
+    } catch (err) {
+      statusEl.textContent = 'Unable to send — check your connection.';
+      statusEl.className = 'error';
+    } finally {
+      submitBtn.disabled = false; submitBtn.style.opacity = '1';
+    }
+  });
+
+  // toast helper
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add('show');
+    setTimeout(()=> toast.classList.remove('show'), 4200);
+  }
+
+  // animated counters (simple)
+  document.querySelectorAll('.num[data-target]').forEach(el => {
+    const target = Number(el.dataset.target || el.textContent || 0);
+    el.textContent = 0;
+    const io = new IntersectionObserver((entries, obs) => {
+      if (!entries[0].isIntersecting) return;
+      let cur = 0; const step = Math.max(1, Math.floor(target / 80));
+      const id = setInterval(()=> {
+        cur += step;
+        if (cur >= target) { el.textContent = target; clearInterval(id); }
+        else el.textContent = cur;
+      }, 12);
+      obs.unobserve(el);
+    }, {threshold:0.6});
+    io.observe(el);
+  });
+
+  // keyboard: Enter on panel anchors goes to form
+  document.querySelectorAll('.hero-inner a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      const t = document.querySelector(a.getAttribute('href'));
+      if (t) t.scrollIntoView({behavior:'smooth', block:'center'});
+    });
+  });
+
+})();
+</script>
+
+{% endblock %}

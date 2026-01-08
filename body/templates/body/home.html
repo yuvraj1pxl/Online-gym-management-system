@@ -1,0 +1,526 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}GYM-SHIM — Strength · Discipline · Transformation{% endblock %}
+
+{% block extra_head %}
+  <meta name="description" content="We craft science-driven training programs, premium facilities and elite coaching so you can achieve results that last.">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@600;800&display=swap" rel="stylesheet">
+
+  <!-- Swiper CSS (for testimonial slider) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+
+  <style>
+  /* ================= GLOBAL ================= */
+  :root{
+    --bg-900:#050507;
+    --bg-850:#0a0b0d;
+    --muted:#b7bcc6;
+    --soft:#e9ecf2;
+    --accent-1:#ffb703; /* yellow */
+    --accent-2:#fb5607; /* orange */
+    --glass: rgba(255,255,255,0.04);
+    --card-border: rgba(255,255,255,0.06);
+    --max-width: 1320px;
+    --bmi-width: 420px; /* fixed right column to ensure visibility */
+  }
+
+  html,body { height:100%; margin:0; padding:0; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  body {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg, var(--bg-900) 0%, #070708 100%);
+    color: #fff;
+    line-height:1.45;
+  }
+  main { overflow-x:hidden; }
+
+  .container-center { max-width: var(--max-width); margin: 0 auto; padding: 0 20px; }
+
+  .section-title { font-weight:800; font-size:clamp(20px, 2.6vw, 30px); margin:0 0 18px 0; color: #fff; }
+
+  /* link reset */
+  a { color: inherit; text-decoration: none; }
+
+  /* ================= HERO ================= */
+  .hero {
+    position: relative;
+    height: 92vh;
+    min-height: 620px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    padding: 28px 0;
+  }
+
+  .hero video {
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;
+    filter: contrast(1.04) saturate(1.05) brightness(.96);
+  }
+
+  /* overlay LIGHTER for background visibility but maintain contrast */
+  .hero .overlay {
+    position:absolute; inset:0; z-index:1;
+    background:
+      radial-gradient(60% 40% at 10% 10%, rgba(0,0,0,0.10), rgba(0,0,0,0.28) 35%, rgba(0,0,0,0.52) 100%),
+      linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.36) 50%, rgba(0,0,0,0.62) 100%);
+  }
+
+  .particle-layer {
+    pointer-events:none; position:absolute; inset:0; z-index:2; opacity:.36;
+    background-image:
+      radial-gradient(circle at 12% 20%, rgba(255,255,255,.02) 0 1px, transparent 2px),
+      radial-gradient(circle at 82% 28%, rgba(255,255,255,.01) 0 1px, transparent 2px);
+    background-size:120px 120px, 200px 200px; animation: particleDrift 28s linear infinite;
+  }
+  @keyframes particleDrift { from { background-position:0 0,0 0 } to { background-position:0 -120px, 0 -200px } }
+
+  .hero-inner {
+    position:relative; z-index:3; max-width:1100px; padding: 48px 20px; text-align:center;
+    transform-origin:center; will-change:transform,opacity;
+  }
+
+  .hero-eyebrow {
+    display:inline-block; color:var(--muted); font-weight:700; font-size:12px; letter-spacing:.12em;
+    padding:8px 14px; border-radius:999px; background:rgba(255,255,255,0.03); margin-bottom:14px; text-transform:uppercase;
+  }
+
+  .hero h1 {
+    margin:8px 0 12px; font-family:'Playfair Display', serif; font-weight:800;
+    font-size:clamp(40px, 6.2vw, 84px); line-height:.95; letter-spacing:-0.01em;
+    text-shadow: 0 10px 30px rgba(0,0,0,.6);
+  }
+  .hero h1 .shimmer {
+    background: linear-gradient(90deg, var(--accent-2), var(--accent-1) 60%); -webkit-background-clip:text; background-clip:text;
+    color: transparent; background-size:200% 100%; animation: gradientShift 7s linear infinite;
+  }
+  @keyframes gradientShift { 0%{background-position:0% 50%}100%{background-position:100% 50%} }
+
+  .hero p.lead {
+    color: var(--muted); max-width:880px; margin: 0 auto; font-size: clamp(15px,1.6vw,20px);
+  }
+
+  .cta-row { margin-top: 26px; display:flex; gap:14px; justify-content:center; align-items:center; flex-wrap:wrap; }
+
+  .btn-metal {
+    position:relative; display:inline-flex; align-items:center; gap:10px; padding:12px 20px; border-radius:12px;
+    font-weight:800; color:#fff; border:1px solid var(--card-border); background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+    box-shadow: 0 10px 32px rgba(0,0,0,.36); transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .btn-metal:hover { transform: translateY(-3px); box-shadow: 0 18px 42px rgba(0,0,0,.48); }
+  .btn-accent { background: linear-gradient(180deg, rgba(255,183,3,.14), rgba(255,140,0,.06)); border-color: rgba(255,183,3,.28) }
+
+  /* small stat row */
+  .hero-stats { margin-top: 28px; display:flex; gap:28px; justify-content:center; flex-wrap:wrap; align-items:center; color:var(--muted); font-weight:700; }
+  .hero-stats .stat { font-weight:900; color:#fff; font-size:18px }
+
+  /* ================= TWO-COLUMN (Testimonial + BMI) ================= */
+  /* Use CSS grid: left fluid, right fixed width (so BMI card never pushed off) */
+  .twocol {
+    max-width: var(--max-width); margin: 48px auto; padding: 20px; display:grid;
+    grid-template-columns: minmax(320px, 1fr) var(--bmi-width); gap: 28px; align-items:start;
+  }
+
+  /* Panel base */
+  .panel {
+    border-radius: 16px; padding: 18px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid var(--card-border); box-shadow: 0 16px 48px rgba(0,0,0,.44);
+  }
+  .panel h2 { margin: 8px 6px 14px; font-size: clamp(18px,2.2vw,26px); }
+
+  /* ================= TESTIMONIAL SLIDER (PRO) ================= */
+  /* we'll use Swiper for buttery transitions */
+  .testimonial-shell { padding: 12px; }
+  .swiper { width:100%; height:100%; }
+  .swiper .swiper-wrapper { align-items:stretch; }
+  .testimonial-slide {
+    display:flex; align-items:center; gap:16px; padding:16px; border-radius:12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    min-height:110px;
+  }
+  .t-avatar { width:72px; height:72px; border-radius:50%; overflow:hidden; flex:0 0 72px; box-shadow:0 12px 32px rgba(0,0,0,.6); border:3px solid rgba(255,183,3,.06); }
+  .t-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+  .t-body { flex:1; }
+  .t-name { font-weight:800; color:#fff; margin-bottom:4px; }
+  .t-quote { color:#d6d9df; line-height:1.5; font-size:15px; }
+
+  /* Swiper UI */
+  .swiper-pagination-bullet { background: linear-gradient(180deg, var(--accent-1), #e48b00); opacity:1; border: 1px solid rgba(255,255,255,.08); }
+  .swiper-button-next, .swiper-button-prev { color: var(--accent-1); border-radius:999px; background: rgba(0,0,0,0.18); width:40px; height:40px; display:flex; align-items:center; justify-content:center; box-shadow:none; border:1px solid rgba(255,255,255,.04); }
+
+  /* tiny accessibility helpers */
+  .swiper-button-next:focus, .swiper-button-prev:focus, .swiper-pagination-bullet:focus { outline: 3px solid rgba(255,183,3,.18); outline-offset:2px; }
+
+  /* ================= BMI CARD ================= */
+  .bmi-card {
+    border-radius:14px; overflow:hidden; position:relative;
+    background: linear-gradient(170deg, #ffb703 0%, #ff8a00 55%, #ff6a00 100%);
+    box-shadow: 0 24px 80px rgba(255,120,0,.12), inset 0 -6px 30px rgba(0,0,0,.12);
+  }
+  .bmi-body { padding:28px; color:#0b0b0b; }
+  .bmi-title { font-weight:900; font-size:clamp(20px,2.2vw,28px); color:#fff; text-shadow: 0 6px 18px rgba(0,0,0,.2); }
+  .bmi-sub { color: rgba(255,255,255,.95); margin-top:8px; font-weight:600; margin-bottom:18px; }
+  .bmi-cta { display:flex; gap:12px; align-items:center }
+  .btn-bmi {
+    background:#0f1013; color:#fff; padding:12px 16px; border-radius:12px; font-weight:900; display:inline-flex; gap:10px; align-items:center;
+    border:1px solid rgba(255,255,255,.08); box-shadow: 0 12px 36px rgba(0,0,0,.35);
+  }
+  .btn-bmi:hover { transform: translateY(-3px); }
+
+  .bmi-badges { margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+  .chip { padding:6px 10px; border-radius:999px; background: rgba(255,255,255,.12); color:#fff; font-weight:700; font-size:13px; }
+
+  /* ================= FEATURES & GALLERY (kept from your original) ================= */
+  .features { padding:72px 20px 84px; max-width:1200px; margin:0 auto; }
+  .features .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:30px; }
+  .feature-card { border-radius:14px; padding:18px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); backdrop-filter: blur(6px); transform: translateY(18px); opacity:0; transition: transform .45s cubic-bezier(.2,.9,.25,1), opacity .45s }
+  .feature-media { height:220px; border-radius:12px; overflow:hidden; margin-bottom:14px; }
+  .feature-media img { width:100%; height:100%; object-fit:cover; transition: transform .8s; }
+  .feature-card:hover .feature-media img { transform: scale(1.06) rotate(.4deg); }
+
+  .gallery { padding:54px 10px 110px; }
+  .gallery-container { overflow:hidden; position:relative; white-space:nowrap; }
+  .gallery-track { display:flex; width:max-content; will-change:transform; }
+  .gallery-track .tile { flex:0 0 auto; margin-right:14px; height:180px; border-radius:12px; overflow:hidden; box-shadow: 0 8px 28px rgba(0,0,0,.5); }
+  .gallery-track img { width:100%; height:100%; object-fit:cover; transition: transform .6s; }
+  .gallery-track .tile:hover img { transform: scale(1.12); }
+
+  /* RESPONSIVE */
+  @media (max-width: 1080px) {
+    .twocol { grid-template-columns: 1fr 360px; }
+  }
+  @media (max-width: 880px) {
+    .hero h1 { font-size: 44px; }
+    .twocol { grid-template-columns: 1fr; gap:18px; padding:28px 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation:none!important; transition:none!important; }
+    .particle-layer { display:none; }
+  }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <!-- HERO -->
+  <header class="hero" role="banner" aria-label="Hero">
+    <video class="hero-video" autoplay muted loop playsinline poster="{% static 'body/img/img5.jpeg' %}">
+      <source src="{% static 'body/video/gym_bg.mp4' %}" type="video/mp4">
+    </video>
+
+    <div class="overlay" aria-hidden="true"></div>
+    <div class="particle-layer" aria-hidden="true"></div>
+
+    <div class="hero-inner container-center">
+      <!-- small eyebrow (not same as title) -->
+      <div class="hero-eyebrow" aria-hidden="true">Train smarter — transform stronger</div>
+
+      <h1 id="hero-title">Strength. Discipline. <span class="shimmer">Transformation</span></h1>
+
+      <p class="lead">We craft science-driven training programs, premium facilities and elite coaching so you can achieve results that last.</p>
+
+      <div class="cta-row">
+        <a class="btn-metal btn-accent" href="{% url 'body:admission_form' %}" role="button">Start Membership</a>
+        <a class="btn-metal" href="{% url 'body:plans' %}" role="button">See Plans</a>
+      </div>
+
+      <div class="hero-stats" role="group" aria-label="Key stats">
+        <div style="text-align:center"><div class="stat" data-target="12" style="font-weight:900;font-size:20px">0</div><div class="muted">Years</div></div>
+        <div style="text-align:center"><div class="stat" data-target="350" style="font-weight:900;font-size:20px">0</div><div class="muted">Active Members</div></div>
+        <div style="text-align:center"><div class="stat" data-target="28" style="font-weight:900;font-size:20px">0</div><div class="muted">Certified Coaches</div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TWO-COLUMN: TESTIMONIALS (left) + BMI/BMR (right) -->
+  <section class="twocol" aria-label="Testimonials and Tools">
+    <!-- LEFT PANEL (testimonials) -->
+    <div class="panel" id="testimonialsPanel">
+      <h2>What Our Members Say</h2>
+
+      <div class="testimonial-shell">
+        <!-- Swiper slider -->
+        <div class="swiper testimonial-swiper" aria-label="Member testimonials">
+          <div class="swiper-wrapper">
+            <!-- Slide 1 -->
+            <div class="swiper-slide testimonial-slide" role="group" aria-roledescription="slide" aria-label="Riya testimonial">
+              <div class="t-avatar"><img loading="lazy" src="https://i.pinimg.com/1200x/7f/8f/ef/7f8fef9e4b98ee28c5111284147429a1.jpg" alt="Riya S."></div>
+              <div class="t-body">
+                <div class="t-name">Riya S.</div>
+                <div class="t-quote">"I gained so much strength and confidence — the coaches built a plan just for me. Recovery suite is next level."</div>
+              </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="swiper-slide testimonial-slide" role="group" aria-roledescription="slide" aria-label="Arjun testimonial">
+              <div class="t-avatar"><img loading="lazy" src="https://i.pinimg.com/736x/ee/29/22/ee2922c28e22b0f991803f4f2f31ad72.jpg" alt="Arjun K."></div>
+              <div class="t-body">
+                <div class="t-name">Arjun K.</div>
+                <div class="t-quote">"Structured progression and accountability changed my training — I'm leaner and stronger than ever."</div>
+              </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="swiper-slide testimonial-slide" role="group" aria-roledescription="slide" aria-label="Meera testimonial">
+              <div class="t-avatar"><img loading="lazy" src="https://i.pinimg.com/736x/2c/f2/37/2cf237af056571e91a807bc67ffeb811.jpg" alt="Meera P."></div>
+              <div class="t-body">
+                <div class="t-name">Meera P.</div>
+                <div class="t-quote">"The nutrition coaching actually fits my life. I can keep up with work and family while getting real results."</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- pagination & nav -->
+          <div class="swiper-pagination" aria-hidden="false"></div>
+          <div class="swiper-button-prev" aria-label="Previous testimonial"></div>
+          <div class="swiper-button-next" aria-label="Next testimonial"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL (BMI/BMR) -->
+    <div class="panel" id="bmiPanel">
+      <h2>Check Your Fitness</h2>
+
+      <div class="bmi">
+        <div class="bmi-card" role="region" aria-label="BMI and BMR tool">
+          <div class="bmi-body">
+            <div class="bmi-title">BMI &amp; BMR Calculator</div>
+            <div class="bmi-sub">Quickly calculate your <strong>Body Mass Index</strong> and <strong>Basal Metabolic Rate</strong> — tailored to your details.</div>
+
+           <div class="bmi-cta" style="margin-top:18px;">
+  <a class="btn-bmi" href="{% url 'body:bmi_bmr' %}" title="Open BMI & BMR calculator">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+      <path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Open Calculator
+  </a>
+</div>
+
+            <div class="bmi-badges">
+              <div class="chip">Fast</div>
+              <div class="chip">Accurate</div>
+              <div class="chip">No signup</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Map -->
+<div class="container" style="max-width:var(--max-width);padding:0 20px;">
+  <div class="map-card">
+    <iframe 
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.020948969732!2d-122.42067918468154!3d37.77492977975973!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8085809caaaaaaab%3A0xcafebabe12345678!2sGym!5e0!3m2!1sen!2sus!4v1700000000000"
+      allowfullscreen="" loading="lazy"></iframe>
+    <div class="map-info">📍 Find us at the heart of the city — easy access from anywhere!</div>
+  </div>
+</div>
+
+  <!-- FEATURES -->
+  <section class="features" aria-labelledby="features-title">
+    <h2 id="features-title" class="section-title">What We Offer</h2>
+    <div class="grid">
+      <article class="feature-card">
+        <figure class="feature-media"><img decoding="async" loading="lazy" src="https://i.pinimg.com/1200x/b3/c3/31/b3c3318a5773e5523cac38834d733be4.jpg" alt="Personal training"></figure>
+        <h3 class="feature-title">Personal Training</h3>
+        <p class="feature-desc">Tailored coaching and periodized programs to accelerate strength and physique gains with 1:1 accountability.</p>
+      </article>
+
+      <article class="feature-card">
+        <figure class="feature-media"><img decoding="async" loading="lazy" src="https://i.pinimg.com/736x/00/fe/a6/00fea6e17c49a1a25f9ada7029e121b3.jpg" alt="Group classes"></figure>
+        <h3 class="feature-title">Group Classes</h3>
+        <p class="feature-desc">High energy functional classes — HIIT, Mobility, Strength Circuits — designed for measurable progress.</p>
+      </article>
+
+      <article class="feature-card">
+        <figure class="feature-media"><img decoding="async" loading="lazy" src="https://i.pinimg.com/736x/6a/01/89/6a0189cf29998a4f0b31648494d9b7dc.jpg" alt="Nutrition support"></figure>
+        <h3 class="feature-title">Nutrition Support</h3>
+        <p class="feature-desc">Evidence-based meal plans and coaching to support training load and recovery.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section class="gallery" aria-labelledby="gallery-title">
+    <h2 id="gallery-title" class="section-title">Gallery</h2>
+    <div class="gallery-container">
+      <div class="gallery-track" id="galleryTrack">
+        <div class="tile"><img src="https://i.pinimg.com/1200x/6f/28/b3/6f28b3eb93d347f24ca28eefc38f1893.jpg" alt="Members training"></div>
+        <div class="tile"><img src="https://i.pinimg.com/736x/ff/78/be/ff78be27288d601bc38661b397b50f52.jpg" alt="Coach training"></div>
+        <div class="tile"><img src="https://i.pinimg.com/1200x/b9/8e/d8/b98ed8fa23dd622292fd4fc883ad1c40.jpg" alt="Recovery area"></div>
+        <div class="tile"><img src="{% static 'body/img/img4.png' %}" alt="Gym interior"></div>
+      </div>
+
+      <noscript>
+        <marquee behavior="scroll" direction="left" scrollamount="6" style="display:block;margin-top:10px;">
+          <img src="https://i.pinimg.com/1200x/6f/28/b3/6f28b3eb93d347f24ca28eefc38f1893.jpg" height="160" alt="">
+          <img src="https://i.pinimg.com/736x/ff/78/be/ff78be27288d601bc38661b397b50f52.jpg" height="160" alt="">
+          <img src="https://i.pinimg.com/1200x/b9/8e/d8/b98ed8fa23dd622292fd4fc883ad1c40.jpg" height="160" alt="">
+          <img src="{% static 'body/img/img4.png' %}" height="160" alt="">
+        </marquee>
+      </noscript>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <!-- GSAP for polished animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+  <script>
+  (function(){
+    function onReady(fn){ if(document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+    onReady(()=> {
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* HERO: split heading chars for premium animation */
+      (function(){
+        const h1 = document.getElementById('hero-title');
+        if(!h1 || h1.dataset.split) return;
+        h1.dataset.split = "1";
+        const walker = document.createTreeWalker(h1, NodeFilter.SHOW_TEXT, {
+          acceptNode: node => node.parentElement && !node.parentElement.classList.contains('shimmer') && node.nodeValue.trim().length ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+        });
+        const nodes = [];
+        while(walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(node=>{
+          const text = node.nodeValue;
+          const frag = document.createDocumentFragment();
+          let idx = 0;
+          for(const ch of text){
+            if(ch === ' ') frag.appendChild(document.createTextNode(' '));
+            else {
+              const span = document.createElement('span');
+              span.className = 'char';
+              span.style.setProperty('--d', (idx*0.03)+'s');
+              span.textContent = ch;
+              frag.appendChild(span);
+              idx++;
+            }
+          }
+          node.parentNode.replaceChild(frag, node);
+        });
+
+        // animate with GSAP if available
+        if(typeof gsap !== 'undefined' && !prefersReduced){
+          try {
+            gsap.from('#hero-title .char', { y: 28, opacity:0, scale:0.98, stagger:0.035, duration:0.72, ease:'power3.out', delay:0.12 });
+            gsap.from('.hero-eyebrow', { y: 8, opacity:0, duration:0.6, ease:'power2.out', delay:0.06 });
+            gsap.from('.hero p.lead', { y: 18, opacity:0, duration:0.8, ease:'power2.out', delay:0.28 });
+            gsap.from('.cta-row .btn-metal', { y: 12, opacity:0, stagger: 0.05, duration:0.6, delay:0.34 });
+          } catch(e){ /* fail silently */ }
+        } else {
+          // fallback: simple reveal
+          document.querySelectorAll('#hero-title .char').forEach((c,i)=> setTimeout(()=> c.style.opacity = '1', 30*i));
+        }
+      })();
+
+
+      /* Initialize Swiper (testimonial slider) */
+      const swiper = new Swiper('.testimonial-swiper', {
+        loop: true,
+        speed: 900,
+        autoplay: { delay: 4200, disableOnInteraction: false },
+        slidesPerView: 1,
+        spaceBetween: 18,
+        effect: 'slide',
+        preloadImages: false,
+        lazy: true,
+        pagination: { el: '.swiper-pagination', clickable: true },
+        navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+        a11y: { enabled: true, prevSlideMessage: 'Previous testimonial', nextSlideMessage: 'Next testimonial' },
+      });
+
+      // announce slide changes to screen readers
+      swiper.on('slideChange', function(){ const idx = swiper.realIndex + 1; const total = swiper.slides.length - (swiper.loopedSlides||0); const live = document.getElementById('testimonialsPanel'); if(live) live.setAttribute('aria-live','polite'); });
+
+      /* Animate feature cards when they appear */
+      (function(){
+        const cards = document.querySelectorAll('.feature-card');
+        if(!('IntersectionObserver' in window)) { cards.forEach(c=> { c.style.opacity = '1'; c.style.transform = 'none'; }); return; }
+        const io = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if(entry.isIntersecting){
+              entry.target.style.opacity = '1';
+              entry.target.style.transform = 'none';
+              io.unobserve(entry.target);
+            }
+          });
+        },{ threshold: .24 });
+        cards.forEach(c => io.observe(c));
+      })();
+
+      /* Counters */
+      (function(){
+        const counters = document.querySelectorAll('.stat[data-target]');
+        if(!('IntersectionObserver' in window)) return;
+        const io = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if(entry.isIntersecting){
+              const el = entry.target;
+              const target = +el.dataset.target || 0;
+              const duration = Math.max(700, Math.min(2200, target * 10));
+              const start = performance.now();
+              (function step(now){
+                const t = Math.min(1, (now - start) / duration);
+                const ease = 1 - Math.pow(1 - t, 3);
+                el.textContent = Math.round(ease * target);
+                if(t < 1) requestAnimationFrame(step);
+              })(start);
+              io.unobserve(el);
+            }
+          });
+        }, { threshold: 0.6 });
+        counters.forEach(c => io.observe(c));
+      })();
+
+      /* Gallery seamless loop (RAF) */
+      (function(){
+        const container = document.querySelector('.gallery-container');
+        const track = document.getElementById('galleryTrack');
+        if(!container || !track) return;
+        const originals = Array.from(track.children).map(n => n.cloneNode(true));
+        const speedPxPerSec = 100;
+        function measureWidth(items){ return items.reduce((acc, el) => acc + el.getBoundingClientRect().width, 0); }
+        let rafId = null, pos = 0, running = true;
+        function build(){
+          track.innerHTML = '';
+          originals.forEach(n => track.appendChild(n.cloneNode(true)));
+          while(measureWidth(Array.from(track.children)) < container.getBoundingClientRect().width * 2){
+            originals.forEach(n => track.appendChild(n.cloneNode(true)));
+          }
+          const totalWidth = measureWidth(Array.from(track.children));
+          const half = totalWidth / 2;
+          cancelAnimationFrame(rafId);
+          pos = 0;
+          const stepPerMs = speedPxPerSec / 1000;
+          let last = performance.now();
+          function loop(now){
+            const dt = now - last; last = now;
+            if(running){
+              pos -= stepPerMs * dt;
+              if(Math.abs(pos) >= half) pos = 0;
+              track.style.transform = `translateX(${pos}px)`;
+            }
+            rafId = requestAnimationFrame(loop);
+          }
+          rafId = requestAnimationFrame(loop);
+          container.addEventListener('pointerenter', ()=> running=false);
+          container.addEventListener('pointerleave', ()=> running=true);
+        }
+        build(); let t; window.addEventListener('resize', ()=> { clearTimeout(t); t = setTimeout(build, 260); });
+      })();
+
+      /* Accessibility & reduced-motion handling */
+      try { if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('reduce-motion'); } catch(e){}
+
+    });
+  })();
+  </script>
+{% endblock %}

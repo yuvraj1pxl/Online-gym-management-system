@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Membership Plans — GYM-SHIM{% endblock %}
+
+{% block content %}
+<!-- PLANS — PREMIUM DYNAMIC PAGE -->
+<style>
+:root{
+  --bg:#060607; --muted:#bfc2c5;
+  --accent:#ff6a00; --accent-2:#ffd366;
+  --panel: rgba(255,255,255,0.03);
+  --glass: rgba(255,255,255,0.035);
+}
+
+/* HERO */
+.plans-hero {
+  position:relative; height:44vh; min-height:280px; display:flex; align-items:center; justify-content:center; overflow:hidden;
+  margin-bottom:34px;
+}
+.plans-hero .media { position:absolute; inset:0; object-fit:cover; width:100%; height:100%; z-index:0; }
+.plans-hero .overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.6)); z-index:1; }
+.plans-hero .inner { position:relative; z-index:2; text-align:center; color:#fff; padding:36px 18px }
+.plans-hero h1 { font-family:'Playfair Display',serif; font-weight:800; font-size: clamp(28px,4vw,42px); margin-bottom:8px; }
+.plans-hero p { color:var(--muted); font-size:1.05rem; max-width:880px; margin:0 auto }
+
+/* page container */
+.container { max-width:1200px; margin:0 auto; padding:2px 20px 2px }
+
+/* billing toggle */
+.billing-toggle { display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:22px }
+.switch { display:inline-flex; background:var(--panel); border-radius:999px; padding:4px; border:1px solid rgba(255,255,255,0.04); box-shadow:0 6px 20px rgba(0,0,0,0.4) }
+.switch button { background:transparent;border:0;padding:8px 18px;border-radius:999px;cursor:pointer;font-weight:700;color:var(--muted); transition:all .28s ease }
+.switch button.active { background: linear-gradient(180deg,var(--accent),var(--accent-2)); color:#111; box-shadow: 0 8px 30px rgba(255,110,30,0.12) }
+
+/* plans grid */
+.plans-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap:22px; align-items:start }
+
+/* plan card */
+.plan-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:14px; padding:18px; border:1px solid rgba(255,255,255,0.04); box-shadow: 0 18px 50px rgba(0,0,0,0.55);
+  transition: transform .38s cubic-bezier(.2,.9,.2,1), box-shadow .38s ease;
+  position:relative; overflow:hidden;
+}
+.plan-card:hover { transform: translateY(-12px); box-shadow: 0 40px 90px rgba(0,0,0,0.6) }
+
+.plan-badge { position:absolute; top:14px; right:14px; padding:6px 10px; border-radius:999px; font-weight:800; background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); color:var(--muted); font-size:.85rem; border:1px solid rgba(255,255,255,0.03) }
+
+.plan-title { font-size:1.15rem; font-weight:800; margin-bottom:8px }
+.price-row { display:flex; align-items:baseline; gap:10px; margin-bottom:10px }
+.price { font-size:1.6rem; font-weight:900 }
+.price-small { color:var(--muted); font-size:0.95rem }
+
+/* perks */
+.perks { margin:14px 0 16px; color:var(--muted); font-size:0.95rem; min-height:64px }
+
+/* CTA area */
+.plan-actions { display:flex; gap:12px; align-items:center; margin-top:10px }
+
+/* ULTRA-REAL METAL BUTTON (grainy iron) - identical behavior to trainer page */
+.btn-metal-iron{
+  --h:46px; position:relative; display:inline-flex; align-items:center; justify-content:center; padding:0 20px;
+  height:var(--h); border-radius:999px; font-weight:800; letter-spacing:.35px;
+  color:#efefef; background:linear-gradient(180deg,#161618 0%,#0d0d0e 60%,#070707 100%);
+  border:1px solid rgba(255,255,255,0.03); box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 18px 40px rgba(0,0,0,0.6);
+  overflow:hidden; cursor:pointer; transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s ease;
+}
+.btn-metal-iron .label{ position:relative; z-index:5 }
+.btn-metal-iron::after{ content:""; position:absolute; inset:2px; border-radius:999px; pointer-events:none; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.36)); mix-blend-mode:overlay; z-index:4; }
+.btn-metal-iron::before{ content:""; position:absolute; inset:0; z-index:3; pointer-events:none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.95' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"); mix-blend-mode:overlay; opacity:0.55; background-size:120px 120px; }
+.btn-metal-iron .sweep{ position:absolute; top:-140%; left:-40%; width:38%; height:320%; z-index:6; background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%); transform:skewX(-28deg); filter:blur(6px); opacity:0; transition:left .75s cubic-bezier(.22,.9,.29,1), opacity .3s ease; mix-blend-mode:screen; }
+.btn-metal-iron:hover .sweep{ left:120%; opacity:1; }
+.btn-metal-iron .micro{ position:absolute; inset:0; z-index:2; pointer-events:none; background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.10) 0 2%, rgba(255,255,255,0.03) 6%, transparent 22%); mix-blend-mode:screen; opacity:0; transition:opacity .18s linear; }
+.btn-metal-iron:hover .micro{ opacity:1 }
+.btn-metal-iron:active{ transform:translateY(-2px) scale(.996) }
+
+/* ribbon / popular */
+.popular { display:inline-block;background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#101010; padding:8px 12px;border-radius:999px; font-weight:900; box-shadow: 0 8px 26px rgba(255,110,30,0.12); }
+
+/* modal */
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:1400; opacity:0; pointer-events:none; transition:opacity .28s ease }
+.modal-backdrop.open { opacity:1; pointer-events:auto }
+.modal { background: linear-gradient(180deg,#0f0f10,#050506); width:min(920px,96%); border-radius:14px; padding:20px; border:1px solid rgba(255,255,255,0.04); box-shadow: 0 30px 80px rgba(0,0,0,0.7); color:#eef1f4 }
+.modal h3 { margin:0 0 6px }
+.modal .close { background:none;border:0;color:var(--muted); font-weight:800; cursor:pointer }
+
+/* small devices */
+@media (max-width:900px){ .plans-hero{height:36vh} .plans-grid{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:600px){ .plans-grid{grid-template-columns:1fr} .switch{padding:3px} }
+@media (prefers-reduced-motion:reduce) { *{animation:none!important;transition:none!important} .btn-metal-iron::before{display:none} }
+</style>
+
+<!-- HERO -->
+<section class="plans-hero" aria-label="Plans hero">
+  <video class="media" autoplay muted loop playsinline poster="{% static 'body/img/img2.jpeg' %}">
+    <source src="{% static 'body/video/video.mp4' %}" type="video/mp4">
+  </video>
+  <div class="overlay" aria-hidden="true"></div>
+  <div class="inner">
+    <h1>Choose the plan that moves you</h1>
+    <p>Flexible memberships — month-to-month, annual savings, or all-access VIP. Toggle between monthly and annual pricing to compare.</p>
+  </div>
+</section>
+
+<main class="container" role="main" aria-labelledby="plans-heading">
+  <h2 id="plans-heading" style="text-align:center;margin-bottom:10px;font-size:1.6rem">Membership Plans</h2>
+
+  <!-- billing toggle -->
+  <div class="billing-toggle" role="tablist" aria-label="Billing frequency">
+    <div class="switch" role="group" aria-label="Billing options">
+      <button class="billing-btn active" data-billing="monthly" aria-pressed="true">Monthly</button>
+      <button class="billing-btn" data-billing="annual" aria-pressed="false">Annual (save 20%)</button>
+    </div>
+  </div>
+
+  <!-- plans grid -->
+  <div class="plans-grid" id="plansGrid" aria-live="polite">
+    {# If your view provides `plans`, use them. Otherwise we render sample plans below #}
+
+    {% if plans %}
+      {% for plan in plans %}
+        <article class="plan-card" data-slug="{{ plan.slug }}" data-price-month="{{ plan.price_month }}" data-price-annual="{{ plan.price_annual }}" data-perks="{{ plan.perks|escapejs }}">
+          <div class="plan-badge">{% if plan.is_popular %}<span class="popular">POPULAR</span>{% endif %}</div>
+          <div class="plan-title">{{ plan.name }}</div>
+          <div class="price-row">
+            <div class="price" data-price>₹{{ plan.price_month }}</div>
+            <div class="price-small" data-period>/month</div>
+          </div>
+          <div class="perks">{{ plan.perks|linebreaksbr }}</div>
+          <div class="plan-actions">
+            <button class="btn-metal-iron select-plan" data-plan="{{ plan.slug }}">
+              <span class="label">Choose Plan</span>
+              <span class="sweep" aria-hidden="true"></span>
+              <span class="micro" aria-hidden="true"></span>
+            </button>
+            <button class="btn-metal-iron outline details-btn" data-plan="{{ plan.slug }}">
+              <span class="label">View Details</span>
+              <span class="sweep" aria-hidden="true"></span>
+            </button>
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      {# fallback sample plans (fully functional interactive) #}
+      <article class="plan-card" data-slug="basic" data-price-month="999" data-price-annual="9590" data-perks="Gym access during staffed hours\nFree Wi-Fi\nLocker access">
+        <div class="plan-badge"></div>
+        <div class="plan-title">Basic</div>
+        <div class="price-row"><div class="price" data-price>₹999</div><div class="price-small" data-period>/month</div></div>
+        <div class="perks">Gym access during staffed hours<br>Free Wi-Fi<br>Locker access</div>
+        <div class="plan-actions">
+          <button class="btn-metal-iron select-plan" data-plan="basic"><span class="label">Choose Plan</span><span class="sweep" aria-hidden="true"></span><span class="micro" aria-hidden="true"></span></button>
+          <button class="btn-metal-iron outline details-btn" data-plan="basic"><span class="label">View Details</span><span class="sweep" aria-hidden="true"></span></button>
+        </div>
+      </article>
+
+      <article class="plan-card" data-slug="premium" data-price-month="1999" data-price-annual="19190" data-perks="24/7 Gym Access\nGroup Classes\n5% PT discount">
+        <div class="plan-badge"><span class="popular">POPULAR</span></div>
+        <div class="plan-title">Premium</div>
+        <div class="price-row"><div class="price" data-price>₹1,999</div><div class="price-small" data-period>/month</div></div>
+        <div class="perks">24/7 Gym Access<br>Group Classes<br>5% Personal Training discount</div>
+        <div class="plan-actions">
+          <button class="btn-metal-iron select-plan" data-plan="premium"><span class="label">Choose Plan</span><span class="sweep" aria-hidden="true"></span><span class="micro" aria-hidden="true"></span></button>
+          <button class="btn-metal-iron outline details-btn" data-plan="premium"><span class="label">View Details</span><span class="sweep" aria-hidden="true"></span></button>
+        </div>
+      </article>
+
+      <article class="plan-card" data-slug="elite" data-price-month="3499" data-price-annual="33490" data-perks="Everything in Premium\nUnlimited PT Sessions\nSauna & Recovery">
+        <div class="plan-badge"></div>
+        <div class="plan-title">Elite</div>
+        <div class="price-row"><div class="price" data-price>₹3,499</div><div class="price-small" data-period>/month</div></div>
+        <div class="perks">All Premium perks<br>Unlimited Personal Training sessions<br>Sauna & Recovery</div>
+        <div class="plan-actions">
+          <button class="btn-metal-iron select-plan" data-plan="elite"><span class="label">Choose Plan</span><span class="sweep" aria-hidden="true"></span><span class="micro" aria-hidden="true"></span></button>
+          <button class="btn-metal-iron outline details-btn" data-plan="elite"><span class="label">View Details</span><span class="sweep" aria-hidden="true"></span></button>
+        </div>
+      </article>
+    {% endif %}
+  </div>
+</main>
+
+<!-- modal -->
+<div id="planModal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Plan details">
+  <div class="modal" role="document">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 id="modalTitle">Plan</h3>
+      <button class="close" id="modalClose" aria-label="Close modal">✕</button>
+    </div>
+    <p id="modalPrice" style="font-weight:800;font-size:1.25rem;margin-top:6px"></p>
+    <div id="modalBody" style="margin-top:12px;color:var(--muted)"></div>
+    <div style="display:flex;gap:12px;margin-top:18px;justify-content:flex-end">
+      <a id="modalChoose" class="btn-metal-iron" role="button"><span class="label">Choose this plan</span><span class="sweep" aria-hidden="true"></span><span class="micro" aria-hidden="true"></span></a>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const billingBtns = document.querySelectorAll('.billing-btn');
+  const plansGrid = document.getElementById('plansGrid');
+  const modalBackdrop = document.getElementById('planModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalPrice = document.getElementById('modalPrice');
+  const modalBody = document.getElementById('modalBody');
+  const modalChoose = document.getElementById('modalChoose');
+  const modalClose = document.getElementById('modalClose');
+
+  // default billing
+  let billing = 'monthly';
+  function setBillingMode(mode) {
+    billing = mode;
+    billingBtns.forEach(b => {
+      const active = b.dataset.billing === mode;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    updatePrices();
+  }
+
+  billingBtns.forEach(btn => {
+    btn.addEventListener('click', () => setBillingMode(btn.dataset.billing));
+  });
+
+  // update all card prices based on data attributes
+  function formatCurrency(n) {
+    // indian rupee formatting — change if needed
+    return '₹' + Number(n).toLocaleString('en-IN');
+  }
+  function updatePrices() {
+    document.querySelectorAll('.plan-card').forEach(card => {
+      const priceEl = card.querySelector('[data-price]');
+      const periodEl = card.querySelector('[data-period]');
+      const pMonth = Number(card.dataset.priceMonth || card.getAttribute('data-price-month') || card.getAttribute('data-price-month'));
+      const pAnnual = Number(card.dataset.priceAnnual || card.getAttribute('data-price-annual') || card.getAttribute('data-price-annual'));
+      // if annual is stored as total-year (e.g. 9590) show per-month when annual selected? We'll show total/year for clarity
+      if (billing === 'monthly') {
+        priceEl.textContent = formatCurrency(pMonth);
+        periodEl.textContent = '/month';
+      } else {
+        // display annual total + indicate savings
+        priceEl.textContent = formatCurrency(pAnnual);
+        periodEl.textContent = '/year';
+      }
+    });
+  }
+
+  // trigger initial pricing
+  setBillingMode('monthly');
+
+  // Reveal animation: basic stagger on load
+  setTimeout(()=> {
+    document.querySelectorAll('.plan-card').forEach((c,i) => {
+      c.style.transitionDelay = (i*90)+'ms';
+      c.style.opacity = 1;
+      c.style.transform = 'translateY(0)';
+    });
+  }, 80);
+
+  // Open modal on details button
+  document.querySelectorAll('.details-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const card = btn.closest('.plan-card');
+      openModalForCard(card);
+    });
+  });
+
+  // Choose plan button (both from card and modal)
+  document.querySelectorAll('.select-plan').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const slug = btn.dataset.plan || btn.closest('.plan-card')?.dataset.slug;
+      // navigate to admission page with plan query (server can preselect)
+      const url = new URL(window.location.href);
+      url.pathname = url.pathname.replace(/\/$/, '') + '/admission/'; // fallback
+      // better: link to known URL; if your project uses named URLs, server can read ?plan=
+      window.location.href = `/admission/?plan=${encodeURIComponent(slug)}`;
+    });
+  });
+
+  function openModalForCard(card) {
+    const slug = card.dataset.slug || card.getAttribute('data-slug');
+    const name = card.querySelector('.plan-title')?.textContent || slug;
+    const pMonth = card.dataset.priceMonth || card.getAttribute('data-price-month');
+    const pAnnual = card.dataset.priceAnnual || card.getAttribute('data-price-annual');
+    const perks = card.dataset.perks || card.getAttribute('data-perks') || card.querySelector('.perks')?.innerHTML || '';
+
+    modalTitle.textContent = name;
+    if (billing === 'monthly') {
+      modalPrice.textContent = formatCurrency(pMonth) + ' / month';
+    } else {
+      modalPrice.textContent = formatCurrency(pAnnual) + ' / year';
+    }
+    modalBody.innerHTML = '<strong>Perks:</strong><div style="margin-top:8px;color:var(--muted)">' + (perks.replace(/\n/g,'<br>')) + '</div>';
+    modalChoose.onclick = () => {
+      window.location.href = `/admission/?plan=${encodeURIComponent(slug)}`;
+    };
+
+    modalBackdrop.classList.add('open');
+    modalBackdrop.setAttribute('aria-hidden','false');
+    modalClose.focus();
+  }
+
+  modalClose.addEventListener('click', () => {
+    modalBackdrop.classList.remove('open');
+    modalBackdrop.setAttribute('aria-hidden','true');
+  });
+
+  modalBackdrop.addEventListener('click', (e) => {
+    if (e.target === modalBackdrop) {
+      modalBackdrop.classList.remove('open');
+      modalBackdrop.setAttribute('aria-hidden','true');
+    }
+  });
+
+  // pointer micro-shine on metal buttons
+  document.querySelectorAll('.btn-metal-iron').forEach(btn => {
+    const micro = btn.querySelector('.micro');
+    btn.addEventListener('pointermove', e => {
+      const r = btn.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 100;
+      const y = ((e.clientY - r.top) / r.height) * 100;
+      btn.style.setProperty('--mx', x + '%');
+      btn.style.setProperty('--my', y + '%');
+      if (micro) micro.style.opacity = '1';
+    });
+    btn.addEventListener('pointerleave', ()=> { if(micro) micro.style.opacity = '0' });
+    // sweep effect already handled by CSS on hover
+  });
+
+  // Accessibility: keyboard open details (Enter on .plan-card reveals modal)
+  document.querySelectorAll('.plan-card').forEach(card => {
+    card.addEventListener('keydown', (e)=> {
+      if (e.key === 'Enter') {
+        openModalForCard(card);
+      }
+    });
+  });
+
+  // final price update in case dynamic attributes differ
+  updatePrices();
+});
+</script>
+{% endblock %}
