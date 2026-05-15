@@ -1,18 +1,17 @@
 from decimal import Decimal
 import uuid
-
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
+from django.contrib.auth.models import User
 
+# -------------------------
+# MEMBERSHIP & ADMISSION
+# -------------------------
 
 class MembershipPlan(models.Model):
-    """
-    Stores membership plans (Basic, Premium, Elite).
-    Fields used in templates: name, price_month, price_annual, duration_days, perks, slug, is_popular
-    """
     name = models.CharField(max_length=100, unique=True)
     price_month = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('999.00'))
     price_annual = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('9590.00'))
@@ -40,87 +39,57 @@ class MembershipPlan(models.Model):
 
 
 class Admission(models.Model):
-    """
-    Represents a member's admission form entry.
-    Fully aligned with your template fields.
-    """
+    GENDER_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+        ('', 'Prefer not to say'),
+    ]
 
-    # Personal Info
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, blank=True)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
-    gender = models.CharField(
-        max_length=10,
-        choices=[("Male", "Male"), ("Female", "Female"), ("Other", "Other")],
-        blank=True
-    )
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
     date_of_birth = models.DateField(null=True, blank=True)
     address = models.TextField(blank=True)
 
-    # Membership Details
     plan = models.ForeignKey(MembershipPlan, on_delete=models.SET_NULL, null=True, related_name='admissions')
     start_date = models.DateField(default=timezone.now)
     duration_months = models.PositiveIntegerField(default=1) 
 
-    # Emergency Contact
     emergency_contact_name = models.CharField(max_length=100, blank=True)
     emergency_contact_phone = models.CharField(max_length=20, blank=True)
-
-    # Additional Info
     fitness_goals = models.TextField(blank=True)
     medical_conditions = models.TextField(blank=True)
 
-    # Photo & Payment Details
     photo = models.ImageField(upload_to='admissions/photos/%Y/%m/%d/', blank=True, null=True)
     upi_id = models.CharField(max_length=100, blank=True)
-
-    # Agreement
     agreed_terms = models.BooleanField(default=False)
-
-    # Pricing Total (based on plan)
+    
+    # Financial field used by your template
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-
-    GENDER_CHOICES = [
-    ('male', 'Male'),
-    ('female', 'Female'),
-    ('other', 'Other'),
-    ('', 'Prefer not to say'),
-]
-
-    gender = models.CharField(
-    max_length=10,
-    choices=GENDER_CHOICES,
-    blank=True,
-    null=True
-    )
-
     class Meta:
         ordering = ['-created_at']
+
+    # --- SERVER-SIDE PRICE CALCULATION ---
+    def save(self, *args, **kwargs):
+        if self.plan:
+            # Logic: Monthly Rate x Number of Months
+            self.total_amount = self.plan.price_month * self.duration_months
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} — {self.email}"
 
 
 class AdmissionPayment(models.Model):
-    """
-    Tracks payments made against an admission.
-    """
-    PAYMENT_STATUS = [
-        ('pending', 'Pending'),
-        ('success', 'Success'),
-        ('failed', 'Failed'),
-    ]
-    PAYMENT_MODE = [
-        ('UPI', 'UPI'),
-        ('Card', 'Card'),
-        ('Other', 'Other'),
-    ]
+    PAYMENT_STATUS = [('pending', 'Pending'), ('success', 'Success'), ('failed', 'Failed')]
+    PAYMENT_MODE = [('UPI', 'UPI'), ('Card', 'Card'), ('Other', 'Other')]
 
     admission = models.ForeignKey(Admission, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -137,48 +106,100 @@ class AdmissionPayment(models.Model):
         return f"Payment {self.transaction_id} — {self.status} — ₹{self.amount}"
 
 
+# -------------------------
+# INVENTORY & SALES (IMS)
+# -------------------------
+
+class Product(models.Model):
+    # 1. Define the choices first
+    CATEGORY_CHOICES = [
+        ('Supplements', 'Supplements'),
+        ('Gear', 'Gear'),
+        ('Apparel', 'Apparel'),
+    ]
+
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField(default=0)
+    image_url = models.URLField(max_length=500, blank=True, help_text="Link to product image")
+    
+    # 2. Add the actual category field here
+    category = models.CharField(
+        max_length=20, 
+        choices=CATEGORY_CHOICES, 
+        default='Gear'
+    )
+
+    def __str__(self):
+        return f"{self.name} ({self.category})"
+
+
+class Sale(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='sales')
+    quantity = models.PositiveIntegerField(default=1)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    # --- STOCK INTEGRITY LOGIC ---
+    def save(self, *args, **kwargs):
+        if not self.pk: # Only on creation
+            if self.product.stock >= self.quantity:
+                self.product.stock -= self.quantity
+                self.product.save()
+            else:
+                raise ValueError("Insufficient stock for this sale.")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Sale: {self.product.name} x {self.quantity}"
+
+
+class ProductOrder(models.Model):
+    ORDER_STATUS = [
+        ('pending', 'Pending Payment'),
+        ('paid', 'Paid / Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='orders')
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    address = models.TextField(help_text="Full delivery address")
+    
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    upi_ref = models.CharField(max_length=100, blank=True, null=True)
+    
+    status = models.CharField(max_length=20, choices=ORDER_STATUS, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Order #{self.id} - {self.product.name} ({self.full_name})"
+
+
+# -------------------------
+# CONTENT & MEDIA
+# -------------------------
+
 class Trainer(models.Model):
-    # Basic Info
     name = models.CharField(max_length=120)
-    specialization = models.CharField(max_length=200, help_text="e.g., Strength & Conditioning • Powerlifting")
-    
-    # Bio sections
-    bio_short = models.TextField(
-        default="",
-        help_text="Short preview bio (1 sentence)",
-        max_length=200
-    )
-    bio_full = models.TextField(
-        default="",
-        help_text="Full detailed bio (shows when 'Read more' is clicked)"
-    )
-    
-    # Image
-    image_url = models.URLField(
-        max_length=500,
-        help_text="Full URL to trainer image (Pinterest, CDN, etc.)"
-    )
-    
-    # Display Order
-    order = models.PositiveIntegerField(
-        default=0,
-        help_text="Lower numbers appear first (0, 1, 2, 3, 4, 5)"
-    )
-    
-    # Active Status
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Uncheck to hide this trainer from the website"
-    )
-    
-    # Timestamps
+    specialization = models.CharField(max_length=200)
+    bio_short = models.TextField(default="", max_length=200)
+    bio_full = models.TextField(default="")
+    image_url = models.URLField(max_length=500)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['order', 'name']
-        verbose_name = "Trainer"
-        verbose_name_plural = "Trainers"
 
     def __str__(self):
         return f"{self.name} - {self.specialization}"
@@ -193,12 +214,27 @@ class GalleryImage(models.Model):
         return self.title or str(self.image.name)
 
 
+class UserAddress(models.Model):   # ← correct: top-level, not indented
+    user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    full_name  = models.CharField(max_length=100)
+    phone      = models.CharField(max_length=15)
+    line1      = models.CharField(max_length=200)
+    city       = models.CharField(max_length=80)
+    state      = models.CharField(max_length=80)
+    pincode    = models.CharField(max_length=10)
+    type       = models.CharField(max_length=20, default='Home')
+    is_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.full_name} — {self.city}"
+
+
 # -------------------------
-# AUTO-CREATE DEFAULT PLANS
+# SIGNALS
 # -------------------------
 @receiver(post_migrate)
 def create_default_plans(sender, **kwargs):
-    if sender.name == 'body':  # run only for your app
+    if sender.name == 'body':
         default_plans = [
             {"name": "Basic", "price_month": 999, "price_annual": 9590},
             {"name": "Premium", "price_month": 1999, "price_annual": 19180},

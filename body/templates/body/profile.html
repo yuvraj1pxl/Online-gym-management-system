@@ -1,1185 +1,658 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Profile Dashboard - GYM-SHYM{% endblock %}
+{% block title %}Profile | GYM-SHIM Terminal{% endblock %}
 
 {% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    overflow-x: hidden;
-  }
-
-  :root {
-    --primary: #ffb400;
-    --primary-alt: #ff7a00;
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --dark: #080808;
-    --card-bg: rgba(20, 20, 30, 0.7);
-    --card-border: rgba(255, 255, 255, 0.08);
-    --text: #e9eaee;
-    --muted: #bcbec4;
-  }
-
-  .profile-section {
-    position: relative;
-    min-height: 100vh;
-    margin-top: 64px;
-    background: linear-gradient(135deg, #0a0a15 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #080808 100%);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
-    overflow: hidden;
-  }
-
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  /* Animated Background */
-  .bg-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    margin-top: 64px;
-  }
-
-  .animated-bg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 20% 50%, rgba(255, 180, 0, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 122, 0, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(100, 200, 255, 0.05) 0%, transparent 50%);
-    animation: float 20s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) scale(1); }
-    50% { transform: translateY(-20px) scale(1.05); }
-  }
-
-  .particles {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .particle {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: rgba(255, 180, 0, 0.3);
-    border-radius: 50%;
-    animation: float-particle linear infinite;
-  }
-
-  @keyframes float-particle {
-    0% {
-      transform: translateY(100vh) translateX(0);
-      opacity: 0;
-    }
-    10% {
-      opacity: 1;
-    }
-    90% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(-100vh) translateX(100px);
-      opacity: 0;
-    }
-  }
-
-  .profile-container {
-    position: relative;
-    z-index: 10;
-    padding: 60px 20px;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
-  /* Auth Forms */
-  .auth-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: calc(100vh - 140px);
-    perspective: 1000px;
-  }
-
-  .auth-card {
-    width: 100%;
-    max-width: 450px;
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--card-border);
-    border-radius: 28px;
-    padding: 50px;
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 0 60px rgba(255, 180, 0, 0.1);
-    animation: authSlideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .auth-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255, 180, 0, 0.1), transparent);
-    animation: spin 8s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  .auth-card > * {
-    position: relative;
-    z-index: 2;
-  }
-
-  @keyframes authSlideUp {
-    from {
-      opacity: 0;
-      transform: translateY(50px) rotateX(10deg);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) rotateX(0);
-    }
-  }
-
-  .auth-header {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .auth-logo {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 16px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-alt));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -1px;
-  }
-
-  .auth-title {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: var(--text);
-  }
-
-  .auth-subtitle {
-    color: var(--muted);
-    font-size: 0.95rem;
-  }
-
-  .auth-tabs {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 32px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .auth-tabs button {
-    flex: 1;
-    padding: 14px 0;
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-weight: 600;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-  }
-
-  .auth-tabs button.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-  }
-
-  .form-group {
-    margin-bottom: 20px;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--text);
-  }
-
-  .form-group input {
-    width: 100%;
-    padding: 14px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: var(--text);
-    font-family: inherit;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-  }
-
-  .form-group input::placeholder {
-    color: rgba(188, 190, 196, 0.5);
-  }
-
-  .form-group input:focus {
-    outline: none;
-    background: rgba(255, 255, 255, 0.08);
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(255, 180, 0, 0.1), inset 0 0 20px rgba(255, 180, 0, 0.05);
-  }
-
-  .submit-btn {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-alt));
-    border: none;
-    border-radius: 12px;
-    color: #000;
-    font-weight: 700;
-    font-size: 1.05rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 12px;
-    box-shadow: 0 8px 24px rgba(255, 180, 0, 0.25);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .submit-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 32px rgba(255, 180, 0, 0.35);
-  }
-
-  .submit-btn:active {
-    transform: translateY(-1px);
-  }
-
-  /* Dashboard */
-  .dashboard-header {
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--card-border);
-    border-radius: 24px;
-    padding: 40px;
-    margin-bottom: 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    animation: headerSlideIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 0 40px rgba(255, 180, 0, 0.08);
-    position: relative;
-    overflow: hidden;
-  }
-
-  @keyframes headerSlideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-30px) rotateX(10deg);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) rotateX(0);
-    }
-  }
-
-  .dashboard-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255, 180, 0, 0.08), transparent);
-    animation: moveGradient 15s ease-in-out infinite;
-  }
-
-  @keyframes moveGradient {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(100px, 100px); }
-  }
-
-  .dashboard-header > * {
-    position: relative;
-    z-index: 2;
-  }
-
-  .dashboard-title h1 {
-    font-size: 2.5rem;
-    margin-bottom: 8px;
-    font-weight: 800;
-    color: var(--text);
-  }
-
-  .dashboard-title p {
-    color: var(--muted);
-    font-size: 1rem;
-  }
-
-  .logout-btn {
-    padding: 12px 28px;
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-  }
-
-  .logout-btn:hover {
-    background: rgba(239, 68, 68, 0.25);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2);
-  }
-
-  /* Bubble Grid */
-  .bubble-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 28px;
-    margin-bottom: 40px;
-    perspective: 1000px;
-  }
-
-  .bubble-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--card-border);
-    border-radius: 24px;
-    padding: 32px;
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    animation: cardFadeIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-  }
-
-  @keyframes cardFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(40px) rotateX(15deg) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) rotateX(0) scale(1);
-    }
-  }
-
-  .bubble-card:nth-child(1) { animation-delay: 0.1s; }
-  .bubble-card:nth-child(2) { animation-delay: 0.2s; }
-  .bubble-card:nth-child(3) { animation-delay: 0.3s; }
-  .bubble-card:nth-child(4) { animation-delay: 0.4s; }
-  .bubble-card:nth-child(5) { animation-delay: 0.5s; }
-  .bubble-card:nth-child(6) { animation-delay: 0.6s; }
-
-  .bubble-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle, rgba(255, 180, 0, 0.15), transparent);
-    opacity: 0;
-    transition: opacity 0.5s ease;
-  }
-
-  .bubble-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    border-radius: 24px;
-  }
-
-  .bubble-card:hover {
-    transform: translateY(-12px) rotateX(-5deg) rotateY(5deg) scale(1.02);
-    border-color: rgba(255, 180, 0, 0.4);
-    box-shadow: 
-      0 24px 48px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      0 0 60px rgba(255, 180, 0, 0.2);
-  }
-
-  .bubble-card:hover::before {
-    opacity: 1;
-  }
-
-  .bubble-card:hover::after {
-    opacity: 1;
-  }
-
-  .bubble-icon {
-    width: 64px;
-    height: 64px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-alt));
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    font-size: 2rem;
-    box-shadow: 0 8px 24px rgba(255, 180, 0, 0.3);
-    transition: all 0.3s ease;
-    position: relative;
-    z-index: 3;
-  }
-
-  .bubble-card:hover .bubble-icon {
-    transform: scale(1.1) rotateZ(-5deg);
-    box-shadow: 0 12px 32px rgba(255, 180, 0, 0.4);
-  }
-
-  .bubble-card.locked .bubble-icon {
-    background: linear-gradient(135deg, rgba(107, 114, 128, 0.4), rgba(75, 85, 99, 0.4));
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  }
-
-  .bubble-label {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-bottom: 6px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    position: relative;
-    z-index: 3;
-    text-transform: uppercase;
-  }
-
-  .bubble-title {
-    font-size: 1.6rem;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: var(--text);
-    position: relative;
-    z-index: 3;
-  }
-
-  .bubble-content {
-    color: var(--muted);
-    font-size: 0.95rem;
-    line-height: 1.7;
-    position: relative;
-    z-index: 3;
-  }
-
-  .progress-bar {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-    overflow: hidden;
-    margin-top: 16px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary), var(--primary-alt));
-    border-radius: 999px;
-    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 0 12px rgba(255, 180, 0, 0.4);
-  }
-
-  .stat-row {
-    display: flex;
-    justify-content: space-between;
-    margin: 12px 0;
-    font-size: 0.95rem;
-    align-items: center;
-  }
-
-  .stat-label {
-    color: var(--muted);
-  }
-
-  .stat-value {
-    font-weight: 700;
-    color: var(--primary);
-  }
-
-  .locked-badge {
-    display: inline-block;
-    background: rgba(107, 114, 128, 0.2);
-    color: var(--muted);
-    padding: 6px 16px;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-top: 12px;
-    border: 1px solid rgba(107, 114, 128, 0.3);
-  }
-
-  /* Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(8px);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    animation: fadeIn 0.3s ease;
-  }
-
-  .modal-overlay.active {
-    display: flex;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .modal-content {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 28px;
-    padding: 48px;
-    max-width: 480px;
-    width: 100%;
-    animation: popUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    text-align: center;
-    box-shadow: 
-      0 16px 48px rgba(0, 0, 0, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 0 60px rgba(255, 180, 0, 0.15);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .modal-content::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255, 180, 0, 0.2), transparent);
-    animation: spin 10s linear infinite;
-  }
-
-  .modal-content > * {
-    position: relative;
-    z-index: 2;
-  }
-
-  @keyframes popUp {
-    from {
-      opacity: 0;
-      transform: scale(0.8) translateY(30px) rotateX(20deg);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0) rotateX(0);
-    }
-  }
-
-  .modal-icon {
-    font-size: 3.5rem;
-    margin-bottom: 24px;
-    animation: bounce 2s ease-in-out infinite;
-  }
-
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
-  }
-
-  .modal-content h2 {
-    font-size: 2rem;
-    margin-bottom: 16px;
-    color: var(--text);
-    font-weight: 800;
-  }
-
-  .modal-content p {
-    color: var(--muted);
-    margin-bottom: 28px;
-    line-height: 1.8;
-    font-size: 1rem;
-  }
-
-  .modal-features {
-    text-align: left;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 32px;
-    font-size: 0.95rem;
-  }
-
-  .modal-features li {
-    margin: 12px 0;
-    color: var(--text);
-  }
-
-  .modal-buttons {
-    display: flex;
-    gap: 16px;
-  }
-
-  .modal-buttons button {
-    flex: 1;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-  }
-
-  .modal-close {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .modal-close:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-  }
-
-  .modal-action {
-    background: linear-gradient(135deg, var(--primary), var(--primary-alt));
-    color: #000;
-    box-shadow: 0 8px 24px rgba(255, 180, 0, 0.3);
-  }
-
-  .modal-action:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 32px rgba(255, 180, 0, 0.4);
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .profile-section {
-      margin-top: 56px;
+:root {
+    --void:         #050505;
+    --surface-2:    #111111;
+    --glass:        rgba(255,255,255,0.03);
+    --glass-thick:  rgba(10,10,10,0.97);
+    --gold:         #C9A84C;
+    --gold-glow:    rgba(201,168,76,0.22);
+    --text-prime:   #f0ede6;
+    --text-sec:     #6b6860;
+    --text-dim:     #3a3835;
+    --border-glass: rgba(255,255,255,0.07);
+    --danger:       #ff3333;
+    --success:      #00cc66;
+    --sidebar-w:    270px;
+    --nav-h:        80px;
+    --ease:         cubic-bezier(0.19,1,0.22,1);
+    --r-lg: 28px; --r-md: 18px; --r-sm: 12px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--void); color: var(--text-prime); overflow-x: hidden; }
+
+.bg-canvas { position: fixed; inset: 0; z-index: 0; background: radial-gradient(ellipse at 10% 10%, #141410 0%, #050505 70%); }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--border-glass) 1px,transparent 1px),linear-gradient(90deg,var(--border-glass) 1px,transparent 1px); background-size: 50px 50px; opacity: 0.15; animation: gridShift 50s linear infinite; }
+@keyframes gridShift { to { background-position: 50px 50px; } }
+
+.master-wrap { padding-top: var(--nav-h); display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+/* ── SIDEBAR ── */
+.sidebar { width: var(--sidebar-w); flex-shrink: 0; background: var(--glass-thick); border-right: 1px solid var(--border-glass); height: calc(100vh - var(--nav-h)); position: fixed; left: 0; top: var(--nav-h); z-index: 500; padding: 36px 20px; backdrop-filter: blur(24px); display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; transition: transform 0.4s var(--ease); }
+.sidebar-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 3px; color: var(--gold); padding: 0 8px; margin-bottom: 36px; flex-shrink: 0; }
+.sidebar nav { flex: 1; }
+.nav-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--r-sm); color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 13px; letter-spacing: 0.3px; transition: 0.35s var(--ease); margin-bottom: 4px; cursor: pointer; border: none; background: none; width: 100%; text-align: left; white-space: nowrap; }
+.nav-item i { width: 18px; text-align: center; font-size: 13px; flex-shrink: 0; }
+.nav-item:hover, .nav-item.active { background: rgba(201,168,76,0.08); color: var(--gold); transform: translateX(6px); }
+.nav-item.danger { color: #ff5555; }
+.nav-item.danger:hover { background: rgba(255,51,51,0.08); color: var(--danger); transform: translateX(6px); }
+.sidebar-footer { border-top: 1px solid var(--border-glass); padding-top: 20px; margin-top: auto; }
+
+.sidebar-toggle { display: none; position: fixed; top: calc(var(--nav-h) + 12px); left: 12px; z-index: 600; width: 44px; height: 44px; background: #111; border: 1px solid var(--border-glass); border-radius: 12px; cursor: pointer; align-items: center; justify-content: center; color: var(--gold); font-size: 16px; transition: 0.3s; }
+.sidebar-backdrop { display: none; position: fixed; inset: 0; z-index: 499; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+.sidebar-backdrop.show { display: block; }
+
+/* ── MAIN ── */
+.main-content { margin-left: var(--sidebar-w); padding: 48px 60px; width: calc(100% - var(--sidebar-w)); min-height: calc(100vh - var(--nav-h)); }
+.section-panel { display: none; animation: panelIn 0.5s var(--ease) forwards; }
+.section-panel.active { display: block; }
+@keyframes panelIn { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+.card-elite { background: var(--glass); border: 1px solid var(--border-glass); border-radius: var(--r-lg); padding: 36px; margin-bottom: 24px; position: relative; overflow: hidden; }
+.card-elite::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.15),transparent); }
+
+.section-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 2px; margin-bottom: 28px; }
+.section-label { font-size: 10px; font-weight: 800; letter-spacing: 3px; color: var(--text-sec); text-transform: uppercase; margin-bottom: 10px; display: block; }
+
+/* ── HERO ── */
+.hero-strip { display: flex; align-items: center; gap: 32px; margin-bottom: 32px; flex-wrap: wrap; }
+.pfp-wrap { position: relative; width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--gold); background: #000; overflow: hidden; cursor: pointer; flex-shrink: 0; transition: 0.4s var(--ease); }
+.pfp-wrap:hover { box-shadow: 0 0 25px var(--gold-glow); transform: scale(1.04); }
+.pfp-wrap img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.pfp-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; opacity:0; transition:0.3s; border-radius:50%; color:#fff; font-size:18px; }
+.pfp-wrap:hover .pfp-overlay { opacity:1; }
+.hero-text h1 { font-size: clamp(1.6rem,4vw,2.8rem); font-weight: 800; line-height: 1.1; }
+.hero-meta { font-size: 11px; font-weight: 800; letter-spacing: 3px; color: var(--text-sec); text-transform: uppercase; margin-top: 8px; }
+
+/* ── STAT GRID ── */
+.stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
+.stat-cell { background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: var(--r-md); padding: 20px; text-align: center; }
+.stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--gold); line-height: 1; }
+.stat-lbl { font-size: 10px; color: var(--text-sec); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+
+/* ══════════════════════════════════════
+   MOBILE QUICK-ACTION GRID
+   Shown ONLY on mobile (≤768px)
+   Hidden on desktop via CSS default
+══════════════════════════════════════ */
+.mobile-quickgrid { display: none; }
+
+.quick-tile {
+    background: rgba(201,168,76,0.04);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 20px;
+    padding: 16px 14px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: 0.25s var(--ease);
+    text-decoration: none; color: var(--text-prime);
+    width: 100%; text-align: left;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.quick-tile:active { transform: scale(0.96); background: rgba(201,168,76,0.1); }
+.quick-tile:hover { border-color: rgba(201,168,76,0.35); color: var(--text-prime); text-decoration: none; }
+
+.qt-icon {
+    width: 42px; height: 42px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+}
+.qt-label { font-weight: 700; font-size: 0.9rem; line-height: 1.2; white-space: nowrap; }
+.qt-sub   { font-size: 10px; color: var(--text-sec); margin-top: 2px; }
+
+/* Tile colour variants — each section gets a unique accent */
+.qt-orders  { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.qt-wish    { background: rgba(248,113,113,0.15); color: #f87171; }
+.qt-addr    { background: rgba(52,211,153,0.15);  color: #34d399; }
+.qt-edit    { background: rgba(201,168,76,0.15);  color: var(--gold); }
+.qt-review  { background: rgba(192,132,252,0.15); color: #c084fc; }
+.qt-feed    { background: rgba(45,212,191,0.15);  color: #2dd4bf; }
+.qt-help    { background: rgba(251,146,60,0.15);  color: #fb923c; }
+.qt-out     { background: rgba(255,51,51,0.15);   color: #ff5555; }
+
+/* ── FORMS ── */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { margin-bottom: 18px; }
+.form-input { width:100%; background:#0c0c0c; border:1px solid var(--border-glass); padding:16px 20px; border-radius:var(--r-sm); color:var(--text-prime); font-size:14px; font-family:'Plus Jakarta Sans',sans-serif; transition:0.3s; display:block; }
+.form-input:focus { border-color:var(--gold); outline:none; background:#111; box-shadow:0 0 16px var(--gold-glow); }
+.form-input::placeholder { color:var(--text-dim); }
+.form-select { appearance:none; cursor:pointer; }
+.btn-gold { background:var(--gold); color:#000; border:none; padding:16px 36px; border-radius:var(--r-sm); font-weight:900; font-size:12px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:0.35s var(--ease); display:inline-block; }
+.btn-gold:hover { box-shadow:0 14px 30px var(--gold-glow); transform:translateY(-3px); }
+.btn-outline { background:transparent; color:var(--text-sec); border:1px solid var(--border-glass); padding:16px 28px; border-radius:var(--r-sm); font-weight:700; font-size:12px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:0.3s; }
+.btn-outline:hover { border-color:var(--text-sec); color:var(--text-prime); }
+.btn-danger { background:transparent; color:var(--danger); border:1px solid rgba(255,51,51,0.3); padding:12px 20px; border-radius:var(--r-sm); font-weight:700; font-size:11px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:0.3s; width:100%; margin-top:16px; }
+.btn-danger:hover { background:var(--danger); color:#fff; }
+
+/* ── ORDERS TABLE ── */
+.orders-table { width:100%; border-collapse:separate; border-spacing:0 10px; }
+.orders-table th { padding:12px 20px; color:var(--text-dim); font-size:10px; letter-spacing:3px; text-transform:uppercase; text-align:left; font-weight:800; }
+.orders-table td { padding:20px; background:rgba(255,255,255,0.02); font-size:14px; }
+.orders-table tr td:first-child { border-radius:14px 0 0 14px; }
+.orders-table tr td:last-child  { border-radius:0 14px 14px 0; }
+.orders-table tr:hover td { background:rgba(255,255,255,0.04); }
+.badge-status { font-size:10px; font-weight:800; letter-spacing:1px; padding:5px 12px; border-radius:20px; text-transform:uppercase; }
+.badge-delivered { background:rgba(0,204,102,0.12); color:var(--success); }
+.badge-pending   { background:rgba(255,180,0,0.12);  color:var(--gold); }
+.badge-cancelled { background:rgba(255,51,51,0.12);  color:var(--danger); }
+
+/* ── WISHLIST ── */
+.wishlist-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; }
+.wish-card { background:var(--surface-2); border:1px solid var(--border-glass); border-radius:24px; overflow:hidden; cursor:pointer; transition:0.45s var(--ease); }
+.wish-card:hover { transform:translateY(-8px); border-color:var(--gold); box-shadow:0 24px 50px rgba(0,0,0,0.6); }
+.wish-img { width:100%; aspect-ratio:1/1; background:#000; display:flex; align-items:center; justify-content:center; padding:24px; overflow:hidden; }
+.wish-img img { max-width:100%; max-height:100%; object-fit:contain; transition:0.5s; }
+.wish-card:hover .wish-img img { transform:scale(1.07); }
+.wish-body { padding:18px; }
+.wish-name  { font-weight:700; font-size:0.88rem; color:#fff; margin-bottom:6px; line-height:1.4; }
+.wish-price { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--gold); }
+
+/* ── ADDRESS ── */
+.address-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px; margin-bottom:24px; }
+.address-card { background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:var(--r-md); padding:22px; position:relative; transition:0.3s; }
+.address-card:hover { border-color:rgba(201,168,76,0.25); }
+.address-card.default { border-color:rgba(201,168,76,0.4); }
+.address-type { font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.address-name { font-weight:700; font-size:0.95rem; margin-bottom:4px; }
+.address-line { font-size:0.82rem; color:var(--text-sec); line-height:1.6; }
+.address-actions { display:flex; gap:8px; margin-top:14px; }
+.btn-addr { flex:1; padding:8px; border-radius:10px; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:0.3s; border:1px solid var(--border-glass); background:transparent; color:var(--text-sec); }
+.btn-addr:hover { border-color:var(--gold); color:var(--gold); }
+.btn-addr.del:hover { border-color:var(--danger); color:var(--danger); }
+.default-badge { position:absolute; top:14px; right:14px; background:rgba(201,168,76,0.12); color:var(--gold); font-size:9px; font-weight:800; letter-spacing:1px; padding:4px 10px; border-radius:20px; text-transform:uppercase; }
+.add-address-form { background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:var(--r-md); padding:28px; margin-top:4px; }
+.add-address-form h4 { font-size:0.95rem; font-weight:800; margin-bottom:20px; color:var(--gold); letter-spacing:1px; text-transform:uppercase; }
+
+/* ── REVIEWS / FEEDBACK ── */
+.review-item { background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:var(--r-md); padding:22px; margin-bottom:14px; transition:0.3s; }
+.review-item:hover { border-color:rgba(201,168,76,0.2); }
+.review-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.review-product { font-weight:700; font-size:0.95rem; }
+.review-stars { color:var(--gold); font-size:13px; }
+.review-date  { font-size:11px; color:var(--text-sec); }
+.review-body  { font-size:13px; color:var(--text-sec); line-height:1.6; }
+.rating-picker { display:flex; gap:8px; margin-bottom:20px; }
+.star-btn { background:none; border:none; cursor:pointer; font-size:24px; color:var(--text-dim); transition:0.2s; }
+.star-btn.lit { color:var(--gold); }
+.star-btn:hover { transform:scale(1.2); }
+textarea.form-input { resize:vertical; min-height:120px; }
+
+/* ── AUTH GATE ── */
+.auth-gate { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.97); backdrop-filter:blur(30px); display:flex; align-items:center; justify-content:center; padding:20px; }
+.auth-box { background:#0a0a0a; border:1px solid var(--gold); padding:56px 48px; border-radius:36px; width:100%; max-width:460px; text-align:center; }
+.auth-box h1 { font-family:'Bebas Neue',sans-serif; font-size:2.4rem; letter-spacing:3px; margin-bottom:28px; }
+.auth-tabs { display:flex; gap:8px; margin-bottom:28px; }
+.auth-tab { flex:1; padding:12px; border-radius:12px; font-weight:800; font-size:12px; letter-spacing:1px; cursor:pointer; border:1px solid var(--border-glass); background:transparent; color:var(--text-sec); transition:0.3s; text-transform:uppercase; }
+.auth-tab.active { background:var(--gold); color:#000; border-color:var(--gold); }
+.auth-form { display:none; }
+.auth-form.active { display:block; }
+
+/* ── CROP MODAL ── */
+.crop-modal { position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.97); backdrop-filter:blur(20px); display:none; align-items:center; justify-content:center; padding:20px; }
+.crop-modal.show { display:flex; }
+.crop-box { background:#0c0c0c; border:1px solid var(--border-glass); border-radius:28px; padding:28px; width:100%; max-width:520px; display:flex; flex-direction:column; gap:16px; }
+.crop-box h3 { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:2px; color:var(--gold); }
+.crop-viewport { width:100%; height:320px; overflow:hidden; border-radius:16px; background:#000; }
+.crop-viewport img { max-width:100%; display:block; }
+.crop-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.crop-btn { flex:1; padding:14px; border-radius:var(--r-sm); font-weight:800; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; transition:0.3s; border:1px solid var(--border-glass); background:transparent; color:var(--text-sec); min-width:80px; }
+.crop-btn.primary { background:var(--gold); color:#000; border-color:var(--gold); }
+.crop-hint { font-size:11px; color:var(--text-sec); text-align:center; }
+
+/* ── ALERTS ── */
+.alert-box { padding:14px 20px; border-radius:var(--r-sm); font-size:13px; font-weight:600; margin-bottom:20px; display:none; align-items:center; gap:10px; }
+.alert-box.show { display:flex; }
+.alert-success { background:rgba(0,204,102,0.08); border:1px solid rgba(0,204,102,0.25); color:var(--success); }
+.alert-error   { background:rgba(255,51,51,0.08);  border:1px solid rgba(255,51,51,0.25);  color:var(--danger); }
+
+/* ══════════════════════════════
+   TABLET  769–1024
+══════════════════════════════ */
+@media (max-width:1024px) {
+    .main-content { padding:40px 36px; }
+    .stat-grid { grid-template-columns:repeat(2,1fr); }
+}
+
+/* ══════════════════════════════
+   MOBILE  ≤768px
+══════════════════════════════ */
+@media (max-width:768px) {
+    /* Sidebar off-canvas */
+    .sidebar { transform:translateX(-100%); width:260px; padding:28px 16px; top:0; height:100vh; }
+    .sidebar.open { transform:translateX(0); }
+    .sidebar-toggle { display:flex; }
+
+    .master-wrap { padding-top:var(--nav-h); }
+    .main-content { margin-left:0; width:100%; padding:14px 13px 70px; }
+
+    /* Hero tighter */
+    .hero-strip { gap:14px; margin-bottom:18px; }
+    .pfp-wrap { width:68px; height:68px; border-width:2px; }
+    .hero-text h1 { font-size:1.28rem; }
+    .hero-meta { font-size:9px; letter-spacing:1.5px; margin-top:5px; }
+
+    /* Stats 2-col */
+    .stat-grid { grid-template-columns:repeat(2,1fr); gap:9px; margin-bottom:14px; }
+    .stat-cell { padding:13px 8px; border-radius:14px; }
+    .stat-val { font-size:1.6rem; }
+    .stat-lbl { font-size:8px; }
+
+    /* ── SHOW QUICK GRID ONLY ON MOBILE ── */
+    .mobile-quickgrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 18px;
     }
 
-    .profile-container {
-      padding: 30px 16px;
-    }
+    /* Cards */
+    .card-elite { padding:16px; border-radius:20px; }
+    .section-title { font-size:1.65rem; margin-bottom:16px; }
+    .form-row { grid-template-columns:1fr; gap:0; }
+    .wishlist-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
+    .address-grid { grid-template-columns:1fr; gap:12px; }
+    .orders-table { display:block; overflow-x:auto; white-space:nowrap; }
+    .auth-box { padding:26px 16px; border-radius:24px; }
+    .auth-box h1 { font-size:1.7rem; }
+    .crop-viewport { height:210px; }
+    .crop-box { padding:16px; }
+    .btn-gold, .btn-outline { padding:13px 20px; font-size:11px; }
+}
 
-    .auth-card {
-      padding: 32px 20px;
-      max-width: 100%;
-    }
+@media (max-width:380px) {
+    .wishlist-grid { grid-template-columns:1fr; }
+    .stat-grid { grid-template-columns:1fr; }
+    .hero-text h1 { font-size:1.1rem; }
+}
 
-    .auth-logo {
-      font-size: 2.2rem;
-    }
-
-    .auth-title {
-      font-size: 1.5rem;
-    }
-
-    .dashboard-header {
-      flex-direction: column;
-      text-align: center;
-      gap: 20px;
-      padding: 28px;
-    }
-
-    .dashboard-title h1 {
-      font-size: 1.8rem;
-    }
-
-    .dashboard-title p {
-      font-size: 0.9rem;
-    }
-
-    .logout-btn {
-      width: 100%;
-      padding: 12px 20px;
-    }
-
-    .bubble-grid {
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-
-    .bubble-card {
-      padding: 24px;
-    }
-
-    .bubble-icon {
-      width: 56px;
-      height: 56px;
-      font-size: 1.6rem;
-    }
-
-    .bubble-title {
-      font-size: 1.3rem;
-    }
-
-    .modal-content {
-      padding: 32px 20px;
-      max-width: 100%;
-    }
-
-    .modal-icon {
-      font-size: 2.5rem;
-    }
-
-    .modal-content h2 {
-      font-size: 1.6rem;
-    }
-
-    .modal-buttons {
-      flex-direction: column;
-    }
-
-    .modal-buttons button {
-      width: 100%;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .auth-card {
-      padding: 24px 16px;
-    }
-
-    .auth-logo {
-      font-size: 1.8rem;
-    }
-
-    .auth-title {
-      font-size: 1.3rem;
-    }
-
-    .form-group input {
-      padding: 12px 14px;
-      font-size: 16px;
-    }
-
-    .submit-btn {
-      padding: 14px;
-      font-size: 1rem;
-    }
-
-    .dashboard-header {
-      padding: 20px;
-    }
-
-    .dashboard-title h1 {
-      font-size: 1.4rem;
-    }
-
-    .bubble-card {
-      padding: 20px;
-    }
-
-    .bubble-title {
-      font-size: 1.1rem;
-    }
-
-    .bubble-content {
-      font-size: 0.9rem;
-    }
-
-    .stat-row {
-      font-size: 0.85rem;
-    }
-  }
+.gold { color:var(--gold)!important; }
+.text-sec { color:var(--text-sec)!important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="profile-section">
-  <div class="bg-canvas">
-    <div class="animated-bg"></div>
-    <div class="particles" id="particleContainer"></div>
-  </div>
+<div class="bg-canvas"><div class="bg-grid"></div></div>
 
-  <div class="profile-container">
-    <!-- Auth Forms -->
-    <div id="authWrapper" class="auth-wrapper" style="display: none;">
-      <div class="auth-card">
-        <div class="auth-header">
-          <div class="auth-logo">GYM-<span style="color: var(--primary);">SHYM</span></div>
-          <h2 class="auth-title">Welcome Back</h2>
-          <p class="auth-subtitle">Your fitness journey awaits</p>
-        </div>
-
+{% if not user.is_authenticated %}
+<div class="auth-gate">
+    <div class="auth-box">
+        <h1>Identify</h1>
         <div class="auth-tabs">
-          <button class="tab-btn active" data-tab="login">Login</button>
-          <button class="tab-btn" data-tab="signup">Sign Up</button>
+            <button class="auth-tab active" onclick="switchTab('login',this)">Login</button>
+            <button class="auth-tab" onclick="switchTab('signup',this)">Sign Up</button>
         </div>
-
-        <!-- Login Form -->
-        <div id="loginForm" class="tab-content active">
-          <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" id="loginEmail" placeholder="Enter your email">
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter your password">
-          </div>
-          <button class="submit-btn" onclick="handleLogin()">Login to Dashboard</button>
-        </div>
-
-        <!-- Signup Form -->
-        <div id="signupForm" class="tab-content" style="display: none;">
-          <div class="form-group">
-            <label>First Name</label>
-            <input type="text" id="signupFirst" placeholder="Enter first name">
-          </div>
-          <div class="form-group">
-            <label>Last Name</label>
-            <input type="text" id="signupLast" placeholder="Enter last name">
-          </div>
-          <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" id="signupEmail" placeholder="Enter your email">
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="signupPassword" placeholder="Create a password">
-          </div>
-          <button class="submit-btn" onclick="handleSignup()">Create Account</button>
-        </div>
-      </div>
+        <form id="loginForm" class="auth-form active" method="POST" action="{% url 'body:auth_view' %}">
+            {% csrf_token %}<input type="hidden" name="action" value="login">
+            <input type="email" name="email" class="form-input" placeholder="Email address" required style="margin-bottom:14px;">
+            <input type="password" name="password" class="form-input" placeholder="Password" required style="margin-bottom:20px;">
+            <button type="submit" class="btn-gold" style="width:100%;">Initialize Session</button>
+        </form>
+        <form id="signupForm" class="auth-form" method="POST" action="{% url 'body:auth_view' %}">
+            {% csrf_token %}<input type="hidden" name="action" value="signup">
+            <input type="text" name="first_name" class="form-input" placeholder="Full name" required style="margin-bottom:14px;">
+            <input type="email" name="email" class="form-input" placeholder="Email address" required style="margin-bottom:14px;">
+            <input type="password" name="password" class="form-input" placeholder="Set password" required style="margin-bottom:20px;">
+            <button type="submit" class="btn-gold" style="width:100%;">Create Identity</button>
+        </form>
     </div>
+</div>
+{% endif %}
 
-    <!-- Dashboard -->
-    <div id="dashboard" style="display: none;">
-      <div class="dashboard-header">
-        <div class="dashboard-title">
-          <h1>Welcome, <span id="userName">User</span>! 💪</h1>
-          <p>Your personal fitness dashboard</p>
-        </div>
-        <button class="logout-btn" onclick="handleLogout()">← Logout</button>
-      </div>
+<button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">
+    <i class="fas fa-bars" id="sidebar-icon"></i>
+</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
-      <!-- Bubble Cards Grid -->
-      <div class="bubble-grid">
-        <!-- Profile Card -->
-        <div class="bubble-card">
-          <div class="bubble-icon">👤</div>
-          <div class="bubble-label">Your Profile</div>
-          <div class="bubble-title">Account Info</div>
-          <div class="bubble-content">
-            <div class="stat-row">
-              <span class="stat-label">Email:</span>
-              <span id="profileEmail" class="stat-value">user@example.com</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Member Since:</span>
-              <span id="memberSince" class="stat-value">Nov 30, 2025</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Status:</span>
-              <span id="memberStatus" class="stat-value" style="color: #ef4444;">Not a Member</span>
-            </div>
-          </div>
+<div class="master-wrap">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">GYM-SHIM</div>
+        <nav>
+            <button class="nav-item active" data-section="overview" onclick="navTo('overview',this)"><i class="fas fa-chart-line"></i> Dashboard</button>
+            <button class="nav-item" data-section="orders"   onclick="navTo('orders',this)"><i class="fas fa-shopping-bag"></i> Orders</button>
+            <button class="nav-item" data-section="wishlist" onclick="navTo('wishlist',this)"><i class="fas fa-heart"></i> Wishlist</button>
+            <button class="nav-item" data-section="address"  onclick="navTo('address',this)"><i class="fas fa-map-marker-alt"></i> Addresses</button>
+            <button class="nav-item" data-section="edit"     onclick="navTo('edit',this)"><i class="fas fa-user-edit"></i> Edit Profile</button>
+            <button class="nav-item" data-section="reviews"  onclick="navTo('reviews',this)"><i class="fas fa-star"></i> My Reviews</button>
+            <button class="nav-item" data-section="feedback" onclick="navTo('feedback',this)"><i class="fas fa-comment-dots"></i> Feedback</button>
+            <a href="{% url 'body:contact' %}" class="nav-item"><i class="fas fa-headset"></i> Help Center</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{% url 'body:logout' %}" class="nav-item danger"><i class="fas fa-power-off"></i> Sign Out</a>
         </div>
+    </aside>
 
-        <!-- Membership Card -->
-        <div class="bubble-card locked" id="membershipCard" onclick="toggleMemberPopup()">
-          <div class="bubble-icon">🔐</div>
-          <div class="bubble-label">Premium Access</div>
-          <div class="bubble-title">Membership</div>
-          <div class="bubble-content">
-            <p>Unlock exclusive features and premium benefits</p>
-            <div class="locked-badge">Click to Unlock</div>
-          </div>
-        </div>
+    <main class="main-content">
 
-        <!-- Attendance Card -->
-        <div class="bubble-card" id="attendanceCard" onclick="checkMembership()">
-          <div class="bubble-icon">📅</div>
-          <div class="bubble-label">This Month</div>
-          <div class="bubble-title">Attendance</div>
-          <div class="bubble-content">
-            <div class="stat-row">
-              <span class="stat-label">Days:</span>
-              <span id="attendanceDays" class="stat-value">0</span>
+        <!-- ══ OVERVIEW ══ -->
+        <section id="overview" class="section-panel active">
+            <div class="hero-strip">
+                <div class="pfp-wrap" onclick="document.getElementById('pfpFileInput').click()">
+                    <img id="pfp-display" src="{% if user.profile_image %}{{ user.profile_image.url }}{% else %}https://api.dicebear.com/7.x/bottts/svg?seed={{ user.username }}{% endif %}" alt="Profile">
+                    <div class="pfp-overlay"><i class="fas fa-camera"></i></div>
+                </div>
+                <div class="hero-text">
+                    <h1>Welcome back,<br><span class="gold">{{ user.first_name|default:user.email }}</span></h1>
+                    <p class="hero-meta">Elite Member · Status: <span class="gold">Active</span></p>
+                </div>
             </div>
-            <div class="stat-row">
-              <span class="stat-label">Rate:</span>
-              <span id="attendanceRate" class="stat-value">0%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="attendanceProgress" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Consistency Card -->
-        <div class="bubble-card" id="consistencyCard" onclick="checkMembership()">
-          <div class="bubble-icon">🔥</div>
-          <div class="bubble-label">Streak</div>
-          <div class="bubble-title">Consistency</div>
-          <div class="bubble-content">
-            <div class="stat-row">
-              <span class="stat-label">Current Streak:</span>
-              <span id="streakDays" class="stat-value">0 days</span>
+            <div class="stat-grid">
+                <div class="stat-cell"><div class="stat-val">{{ orders|length }}</div><div class="stat-lbl">Orders</div></div>
+                <div class="stat-cell"><div class="stat-val" id="wl-stat">0</div><div class="stat-lbl">Wishlist</div></div>
+                <div class="stat-cell"><div class="stat-val">82%</div><div class="stat-lbl">Streak</div></div>
             </div>
-            <p style="margin-top: 12px; font-size: 0.85rem; color: var(--muted);">Keep pushing! Build your consistency.</p>
-          </div>
-        </div>
 
-        <!-- Workout Progress Card -->
-        <div class="bubble-card" id="workoutCard" onclick="checkMembership()">
-          <div class="bubble-icon">⚡</div>
-          <div class="bubble-label">Weekly Target</div>
-          <div class="bubble-title">Workout Goal</div>
-          <div class="bubble-content">
-            <div class="stat-row">
-              <span class="stat-label">Completed:</span>
-              <span id="workoutCount" class="stat-value">0/6</span>
+            <!-- ══ MOBILE QUICK-ACTION GRID — hidden on desktop ══ -->
+            <div class="mobile-quickgrid">
+                <button class="quick-tile" onclick="navTo('orders', getNavBtn('orders'))">
+                    <div class="qt-icon qt-orders"><i class="fas fa-shopping-bag"></i></div>
+                    <div><div class="qt-label">Orders</div><div class="qt-sub">Track history</div></div>
+                </button>
+                <button class="quick-tile" onclick="navTo('wishlist', getNavBtn('wishlist'))">
+                    <div class="qt-icon qt-wish"><i class="fas fa-heart"></i></div>
+                    <div><div class="qt-label">Wishlist</div><div class="qt-sub">Saved items</div></div>
+                </button>
+                <button class="quick-tile" onclick="navTo('address', getNavBtn('address'))">
+                    <div class="qt-icon qt-addr"><i class="fas fa-map-marker-alt"></i></div>
+                    <div><div class="qt-label">Addresses</div><div class="qt-sub">Delivery info</div></div>
+                </button>
+                <button class="quick-tile" onclick="navTo('edit', getNavBtn('edit'))">
+                    <div class="qt-icon qt-edit"><i class="fas fa-user-edit"></i></div>
+                    <div><div class="qt-label">Edit Profile</div><div class="qt-sub">Update details</div></div>
+                </button>
+                <button class="quick-tile" onclick="navTo('reviews', getNavBtn('reviews'))">
+                    <div class="qt-icon qt-review"><i class="fas fa-star"></i></div>
+                    <div><div class="qt-label">Reviews</div><div class="qt-sub">Your ratings</div></div>
+                </button>
+                <button class="quick-tile" onclick="navTo('feedback', getNavBtn('feedback'))">
+                    <div class="qt-icon qt-feed"><i class="fas fa-comment-dots"></i></div>
+                    <div><div class="qt-label">Feedback</div><div class="qt-sub">Share thoughts</div></div>
+                </button>
+                <a href="{% url 'body:contact' %}" class="quick-tile">
+                    <div class="qt-icon qt-help"><i class="fas fa-headset"></i></div>
+                    <div><div class="qt-label">Help Center</div><div class="qt-sub">Support</div></div>
+                </a>
+                <a href="{% url 'body:logout' %}" class="quick-tile">
+                    <div class="qt-icon qt-out"><i class="fas fa-power-off"></i></div>
+                    <div><div class="qt-label">Sign Out</div><div class="qt-sub">End session</div></div>
+                </a>
             </div>
-            <div class="stat-row">
-              <span class="stat-label">Progress:</span>
-              <span id="workoutPercent" class="stat-value">0%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="workoutProgress" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Plans Card -->
-        <div class="bubble-card" id="plansCard" onclick="checkMembership()">
-          <div class="bubble-icon">📊</div>
-          <div class="bubble-label">Current Plan</div>
-          <div class="bubble-title">Subscription</div>
-          <div class="bubble-content">
-            <div class="stat-row">
-              <span class="stat-label">Plan:</span>
-              <span id="currentPlan" class="stat-value">No Plan</span>
+            <div class="card-elite">
+                <span class="section-label">Training Intensity — Last 7 Days</span>
+                <canvas id="gymChart" height="100"></canvas>
             </div>
-            <div class="stat-row">
-              <span class="stat-label">Renewal:</span>
-              <span id="planRenewal" class="stat-value">—</span>
+        </section>
+
+        <!-- ══ ORDERS ══ -->
+        <section id="orders" class="section-panel">
+            <div class="section-title">Order History</div>
+            <div class="card-elite" style="padding:0;overflow:hidden;">
+                <table class="orders-table">
+                    <thead><tr><th>Order ID</th><th>Product</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td class="gold" style="font-weight:800;font-family:'JetBrains Mono',monospace;">#ORD-{{ order.id }}</td>
+                            <td>{{ order.product.name }}</td>
+                            <td style="font-weight:800;">₹{{ order.total_amount }}</td>
+                            <td style="color:var(--text-sec);font-size:13px;">{{ order.created_at|date:"d M Y" }}</td>
+                            <td><span class="badge-status {% if order.status == 'delivered' %}badge-delivered{% elif order.status == 'cancelled' %}badge-cancelled{% else %}badge-pending{% endif %}">{{ order.status }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-sec);">No orders yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+        </section>
+
+        <!-- ══ WISHLIST ══ -->
+        <section id="wishlist" class="section-panel">
+            <div class="section-title">Secured Vault</div>
+            <div class="card-elite"><div id="wishlistGrid" class="wishlist-grid"></div></div>
+        </section>
+
+        <!-- ══ ADDRESS ══ -->
+        <section id="address" class="section-panel">
+            <div class="section-title">Saved Addresses</div>
+            <div class="address-grid">
+                {% for addr in user.addresses.all %}
+                <div class="address-card {% if addr.is_default %}default{% endif %}">
+                    {% if addr.is_default %}<span class="default-badge">Default</span>{% endif %}
+                    <div class="address-type"><i class="fas fa-{% if addr.type == 'Work' %}briefcase{% else %}home{% endif %}"></i> {{ addr.type }}</div>
+                    <div class="address-name">{{ addr.full_name }}</div>
+                    <div class="address-line">{{ addr.line1 }}<br>{{ addr.city }}, {{ addr.state }} — {{ addr.pincode }}<br>{{ addr.phone }}</div>
+                    <div class="address-actions">
+                        {% if not addr.is_default %}
+                        <form method="POST" action="{% url 'body:set_default_address' addr.id %}" style="flex:1;">
+                            {% csrf_token %}<button type="submit" class="btn-addr" style="width:100%;">Set Default</button>
+                        </form>
+                        {% endif %}
+                        <form method="POST" action="{% url 'body:delete_address' addr.id %}" style="flex:1;">
+                            {% csrf_token %}<button type="submit" class="btn-addr del" style="width:100%;">Remove</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}<p style="color:var(--text-sec);font-size:13px;grid-column:1/-1;">No addresses saved yet.</p>
+                {% endfor %}
+            </div>
+            <div class="add-address-form">
+                <h4><i class="fas fa-plus" style="margin-right:8px;"></i>Add New Address</h4>
+                <form method="POST" action="{% url 'body:add_address' %}">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group"><span class="section-label">Full Name</span><input type="text" name="full_name" class="form-input" placeholder="Receiver's full name" required></div>
+                        <div class="form-group"><span class="section-label">Phone</span><input type="tel" name="phone" class="form-input" placeholder="10-digit number" required></div>
+                    </div>
+                    <div class="form-group"><span class="section-label">Address Line</span><input type="text" name="line1" class="form-input" placeholder="House / Flat, Street, Area" required></div>
+                    <div class="form-row">
+                        <div class="form-group"><span class="section-label">City</span><input type="text" name="city" class="form-input" placeholder="City" required></div>
+                        <div class="form-group"><span class="section-label">State</span><input type="text" name="state" class="form-input" placeholder="State" required></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><span class="section-label">Pincode</span><input type="text" name="pincode" class="form-input" placeholder="6-digit pincode" required></div>
+                        <div class="form-group"><span class="section-label">Address Type</span>
+                            <select name="type" class="form-input form-select"><option value="Home">Home</option><option value="Work">Work</option><option value="Other">Other</option></select>
+                        </div>
+                    </div>
+                    <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-sec);margin-bottom:20px;cursor:pointer;">
+                        <input type="checkbox" name="is_default" style="accent-color:var(--gold);width:16px;height:16px;"> Set as default address
+                    </label>
+                    <button type="submit" class="btn-gold">Save Address</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ══ EDIT PROFILE ══ -->
+        <section id="edit" class="section-panel">
+            <div class="section-title">Edit Profile</div>
+            {% if messages %}{% for message in messages %}
+            <div class="alert-box show {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i> {{ message }}
+            </div>
+            {% endfor %}{% endif %}
+
+            <div class="card-elite" style="margin-bottom:20px;">
+                <span class="section-label">Profile Photo</span>
+                <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+                    <div class="pfp-wrap" onclick="document.getElementById('pfpFileInput').click()">
+                        <img id="pfp-display-edit" src="{% if user.profile_image %}{{ user.profile_image.url }}{% else %}https://api.dicebear.com/7.x/bottts/svg?seed={{ user.username }}{% endif %}" alt="Profile">
+                        <div class="pfp-overlay"><i class="fas fa-camera"></i></div>
+                    </div>
+                    <div>
+                        <p style="font-size:13px;color:var(--text-sec);margin-bottom:10px;line-height:1.6;">Click the avatar to upload a photo.<br>Crop and zoom before saving.</p>
+                        <button type="button" class="btn-outline" onclick="document.getElementById('pfpFileInput').click()"><i class="fas fa-upload" style="margin-right:6px;"></i>Choose Photo</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-elite">
+                <span class="section-label">Personal Details</span>
+                <form method="POST" action="{% url 'body:update_profile' %}" enctype="multipart/form-data" id="profileForm">
+                    {% csrf_token %}<input type="hidden" name="cropped_image" id="croppedImageInput">
+                    <div class="form-row">
+                        <div class="form-group"><span class="section-label">First Name</span><input type="text" name="first_name" class="form-input" value="{{ user.first_name }}" placeholder="First name"></div>
+                        <div class="form-group"><span class="section-label">Last Name</span><input type="text" name="last_name" class="form-input" value="{{ user.last_name }}" placeholder="Last name"></div>
+                    </div>
+                    <div class="form-group"><span class="section-label">Email</span><input type="email" name="email" class="form-input" value="{{ user.email }}" placeholder="Email"></div>
+                    <div class="form-group"><span class="section-label">Phone</span><input type="tel" name="phone" class="form-input" value="{{ user.phone|default:'' }}" placeholder="Phone number"></div>
+                    <button type="submit" class="btn-gold">Save Changes</button>
+                </form>
+            </div>
+
+            <div class="card-elite">
+                <span class="section-label">Change Password</span>
+                <form method="POST" action="{% url 'body:change_password' %}">
+                    {% csrf_token %}
+                    <div class="form-group"><span class="section-label">Current Password</span><input type="password" name="old_password" class="form-input" placeholder="Current password" required></div>
+                    <div class="form-row">
+                        <div class="form-group"><span class="section-label">New Password</span><input type="password" name="new_password1" class="form-input" placeholder="New password" required></div>
+                        <div class="form-group"><span class="section-label">Confirm</span><input type="password" name="new_password2" class="form-input" placeholder="Confirm password" required></div>
+                    </div>
+                    <button type="submit" class="btn-gold">Update Password</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ══ REVIEWS ══ -->
+        <section id="reviews" class="section-panel">
+            <div class="section-title">My Reviews</div>
+            <div class="card-elite">
+                {% for review in user_reviews %}
+                <div class="review-item">
+                    <div class="review-header">
+                        <span class="review-product">{{ review.product.name }}</span>
+                        <span class="review-stars">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+                    </div>
+                    <div class="review-date" style="margin-bottom:8px;">{{ review.created_at|date:"d M Y" }}</div>
+                    <p class="review-body">{{ review.comment }}</p>
+                </div>
+                {% empty %}<p style="color:var(--text-sec);padding:24px 0;text-align:center;">No reviews written yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- ══ FEEDBACK ══ -->
+        <section id="feedback" class="section-panel">
+            <div class="section-title">Send Feedback</div>
+            <div class="card-elite">
+                <form method="POST" action="{% url 'body:submit_feedback' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <span class="section-label">Your Rating</span>
+                        <div class="rating-picker">{% for i in "12345" %}<button type="button" class="star-btn" onclick="setRating({{ forloop.counter }})">★</button>{% endfor %}</div>
+                        <input type="hidden" name="rating" id="ratingInput" value="0">
+                    </div>
+                    <div class="form-group"><span class="section-label">Subject</span><input type="text" name="subject" class="form-input" placeholder="What's this about?" required></div>
+                    <div class="form-group"><span class="section-label">Message</span><textarea name="message" class="form-input" placeholder="Share your thoughts…" required></textarea></div>
+                    <button type="submit" class="btn-gold">Submit Feedback</button>
+                </form>
+            </div>
+        </section>
+    </main>
 </div>
 
-<!-- Membership Popup Modal -->
-<div id="membershipModal" class="modal-overlay">
-  <div class="modal-content">
-    <div class="modal-icon">🔓</div>
-    <h2>Join GYM-SHYM Today!</h2>
-    <p>Become a member and unlock all the exclusive features to track your fitness journey like never before.</p>
-    
-    <ul class="modal-features">
-      <li>✓ Daily attendance tracking</li>
-      <li>✓ Workout progress monitoring</li>
-      <li>✓ Personal coaching sessions</li>
-      <li>✓ Customized meal plans</li>
-      <li>✓ 24/7 priority support</li>
-    </ul>
-
-    <div class="modal-buttons">
-      <button class="modal-close" onclick="toggleMemberPopup()">Close</button>
-      <button class="modal-action" onclick="redirectToAdmission()">Get Membership</button>
+<input type="file" id="pfpFileInput" accept="image/*" style="display:none;" onchange="initCropper(this)">
+<div class="crop-modal" id="cropModal">
+    <div class="crop-box">
+        <h3>Crop Photo</h3>
+        <div class="crop-viewport"><img id="cropImage" src="" alt="Crop preview"></div>
+        <p class="crop-hint">Drag to reposition · Pinch or scroll to zoom</p>
+        <div class="crop-actions">
+            <button class="crop-btn" onclick="closeCropper()">Cancel</button>
+            <button class="crop-btn" onclick="rotateCrop(-90)"><i class="fas fa-rotate-left"></i> Rotate</button>
+            <button class="crop-btn primary" onclick="applyCrop()">Apply &amp; Save</button>
+        </div>
     </div>
-  </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
 <script>
-  // Generate particles
-  function createParticles() {
-    const container = document.getElementById('particleContainer');
-    for (let i = 0; i < 50; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.left = Math.random() * 100 + '%';
-      particle.style.duration = (Math.random() * 10 + 15) + 's';
-      particle.style.animationDuration = particle.style.duration;
-      particle.style.animationDelay = Math.random() * 5 + 's';
-      container.appendChild(particle);
-    }
-  }
+// Chart
+(function(){const c=document.getElementById('gymChart');if(!c)return;new Chart(c.getContext('2d'),{type:'line',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{data:[65,59,80,81,56,95,40],borderColor:'#C9A84C',borderWidth:2,tension:0.45,fill:true,backgroundColor:'rgba(201,168,76,0.06)',pointBackgroundColor:'#C9A84C',pointRadius:4,pointHoverRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{display:false,grid:{display:false}},x:{grid:{display:false},ticks:{color:'#555',font:{size:11}}}}}});})();
 
-  createParticles();
+// Helper — get the sidebar nav button for a section
+function getNavBtn(id){ return document.querySelector(`.nav-item[data-section="${id}"]`); }
 
-  // Tab switching
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-      e.target.classList.add('active');
-      const tab = e.target.dataset.tab;
-      document.getElementById(tab + 'Form').style.display = 'block';
-    });
-  });
+// Sidebar
+function toggleSidebar(){const sb=document.getElementById('sidebar'),bd=document.getElementById('sidebarBackdrop'),ic=document.getElementById('sidebar-icon'),open=sb.classList.toggle('open');bd.classList.toggle('show',open);ic.className=open?'fas fa-times':'fas fa-bars';}
 
-  let currentUser = null;
+// Navigation
+function navTo(id,el){
+    document.querySelectorAll('.section-panel').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    const panel=document.getElementById(id);
+    if(panel) panel.classList.add('active');
+    if(el) el.classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+    const sb=document.getElementById('sidebar');
+    if(sb.classList.contains('open')) toggleSidebar();
+    if(id==='wishlist') loadWishlist();
+}
 
-  function loadUserFromStorage() {
-    const saved = localStorage.getItem('gymUser');
-    if (saved) {
-      currentUser = JSON.parse(saved);
-      showDashboard();
-    } else {
-      showAuthForm();
-    }
-  }
+// Auth tabs
+function switchTab(type,btn){document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));btn.classList.add('active');document.getElementById(type+'Form').classList.add('active');}
 
-  function showAuthForm() {
-    document.getElementById('authWrapper').style.display = 'flex';
-    document.getElementById('dashboard').style.display = 'none';
-  }
+// Wishlist
+function loadWishlist(){
+    const data=JSON.parse(localStorage.getItem('user_wishlist'))||[];
+    const grid=document.getElementById('wishlistGrid');
+    const stat=document.getElementById('wl-stat');
+    if(stat) stat.textContent=data.length;
+    if(!grid) return;
+    if(data.length===0){grid.innerHTML=`<p style="color:var(--text-sec);padding:32px 0;text-align:center;grid-column:1/-1;"><i class="fas fa-heart" style="font-size:2rem;margin-bottom:12px;display:block;opacity:0.3;"></i>Your vault is empty.</p>`;return;}
+    grid.innerHTML=data.map(item=>`<div class="wish-card" onclick="window.location.href='/shop/checkout/${item.id}/'"><div class="wish-img"><img src="${item.img||''}" alt="${item.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/200?text=No+Image'"></div><div class="wish-body"><div class="wish-name">${item.name}</div><div class="wish-price">₹${item.price}</div><button class="btn-danger" onclick="event.stopPropagation();removeFromWishlist('${item.id}')"><i class="fas fa-trash-alt" style="margin-right:6px;"></i>Remove</button></div></div>`).join('');
+}
+function removeFromWishlist(id){let wl=JSON.parse(localStorage.getItem('user_wishlist'))||[];wl=wl.filter(i=>String(i.id)!==String(id));localStorage.setItem('user_wishlist',JSON.stringify(wl));loadWishlist();}
 
-  function showDashboard() {
-    document.getElementById('authWrapper').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    updateDashboard();
-  }
+// Star rating
+function setRating(val){document.getElementById('ratingInput').value=val;document.querySelectorAll('.star-btn').forEach((b,i)=>b.classList.toggle('lit',i<val));}
 
-  function handleLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-
-    if (!email || !password) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    currentUser = {
-      id: Date.now(),
-      email: email,
-      firstName: email.split('@')[0],
-      lastName: 'User',
-      isMember: false,
-      joinDate: new Date().toLocaleDateString(),
-      attendance: 0,
-      plan: null
+// Cropper
+let cropperInstance=null;
+function initCropper(input){
+    if(!input.files||!input.files[0]) return;
+    const reader=new FileReader();
+    reader.onload=function(e){
+        const modal=document.getElementById('cropModal'),img=document.getElementById('cropImage');
+        if(cropperInstance){cropperInstance.destroy();cropperInstance=null;}
+        img.src=e.target.result;
+        modal.classList.add('show');
+        document.body.style.overflow='hidden';
+        img.onload=function(){cropperInstance=new Cropper(img,{aspectRatio:1,viewMode:2,dragMode:'move',autoCropArea:0.85,movable:true,zoomable:true,rotatable:true,scalable:false,cropBoxResizable:true,guides:false,highlight:false,background:false});};
     };
+    reader.readAsDataURL(input.files[0]);
+    input.value='';
+}
+function rotateCrop(deg){if(cropperInstance) cropperInstance.rotate(deg);}
+function closeCropper(){if(cropperInstance){cropperInstance.destroy();cropperInstance=null;}document.getElementById('cropModal').classList.remove('show');document.body.style.overflow='';}
+function applyCrop(){
+    if(!cropperInstance) return;
+    const canvas=cropperInstance.getCroppedCanvas({width:400,height:400,imageSmoothingQuality:'high'});
+    const dataURL=canvas.toDataURL('image/jpeg',0.92);
+    document.querySelectorAll('#pfp-display,#pfp-display-edit').forEach(img=>img.src=dataURL);
+    document.getElementById('croppedImageInput').value=dataURL;
+    closeCropper();
+    document.getElementById('profileForm').submit();
+}
 
-    localStorage.setItem('gymUser', JSON.stringify(currentUser));
-    showDashboard();
-  }
-
-  function handleSignup() {
-    const firstName = document.getElementById('signupFirst').value;
-    const lastName = document.getElementById('signupLast').value;
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
-
-    if (!firstName || !lastName || !email || !password) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    currentUser = {
-      id: Date.now(),
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      isMember: false,
-      joinDate: new Date().toLocaleDateString(),
-      attendance: 0,
-      plan: null
-    };
-
-    localStorage.setItem('gymUser', JSON.stringify(currentUser));
-    showDashboard();
-  }
-
-  function handleLogout() {
-    localStorage.removeItem('gymUser');
-    currentUser = null;
-    document.getElementById('loginEmail').value = '';
-    document.getElementById('loginPassword').value = '';
-    document.getElementById('signupFirst').value = '';
-    document.getElementById('signupLast').value = '';
-    document.getElementById('signupEmail').value = '';
-    document.getElementById('signupPassword').value = '';
-    showAuthForm();
-  }
-
-  function updateDashboard() {
-    document.getElementById('userName').textContent = currentUser.firstName;
-    document.getElementById('profileEmail').textContent = currentUser.email;
-    document.getElementById('memberSince').textContent = currentUser.joinDate;
-    
-    if (currentUser.isMember) {
-      document.getElementById('memberStatus').textContent = '✓ Active Member';
-      document.getElementById('memberStatus').style.color = '#22c55e';
-      document.getElementById('membershipCard').classList.remove('locked');
-      
-      document.getElementById('attendanceDays').textContent = '12';
-      document.getElementById('attendanceRate').textContent = '68%';
-      document.getElementById('attendanceProgress').style.width = '68%';
-      document.getElementById('streakDays').textContent = '14 days';
-      document.getElementById('workoutCount').textContent = '5/6';
-      document.getElementById('workoutPercent').textContent = '83%';
-      document.getElementById('workoutProgress').style.width = '83%';
-      document.getElementById('currentPlan').textContent = 'Premium';
-      document.getElementById('planRenewal').textContent = '45 days';
-    } else {
-      document.getElementById('membershipCard').classList.add('locked');
-    }
-  }
-
-  function checkMembership() {
-    if (!currentUser.isMember) {
-      toggleMemberPopup();
-    }
-  }
-
-  function toggleMemberPopup() {
-    document.getElementById('membershipModal').classList.toggle('active');
-  }
-
-  function redirectToAdmission() {
-    window.location.href = '{% url "body:admission_form" %}';
-  }
-
-  window.addEventListener('load', loadUserFromStorage);
+// Init
+window.addEventListener('DOMContentLoaded',function(){
+    loadWishlist();
+    const hash=window.location.hash.replace('#','');
+    const valid=['overview','orders','wishlist','address','edit','reviews','feedback'];
+    if(hash&&valid.includes(hash)) navTo(hash, getNavBtn(hash));
+});
 </script>
 {% endblock %}

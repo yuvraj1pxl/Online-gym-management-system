@@ -1,0 +1,956 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* ═══════════════════════════════════════════
+       ARMORY v15.0 — SOVEREIGN DESIGN SYSTEM
+       Full responsive — no text hiding, no overflow
+    ═══════════════════════════════════════════ */
+    :root {
+        --gold: #C9A84C;
+        --gold-glow: rgba(201,168,76,0.3);
+        --bg-void: #050505;
+        --bg-surface: #0d0d0d;
+        --border-dim: rgba(255,255,255,0.06);
+        --text-prime: #F0EDE6;
+        --text-sec: #7A7872;
+        --danger-red: #ff3333;
+        --success-green: #00ff88;
+        --ease-elite: cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-void); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+    body {
+        background-color: var(--bg-void);
+        color: var(--text-prime);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        overflow-x: hidden;
+    }
+
+    /* ─── BACKGROUND GRID ─── */
+    .bg-grid {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background-image:
+            linear-gradient(var(--border-dim) 1px, transparent 1px),
+            linear-gradient(90deg, var(--border-dim) 1px, transparent 1px);
+        background-size: 60px 60px; opacity: 0.18;
+        animation: gridTravel 40s linear infinite;
+    }
+    @keyframes gridTravel { from { background-position: 0 0; } to { background-position: 60px 60px; } }
+
+    /* ─── ARMORY WRAPPER ─── */
+.armory-wrapper {
+    position: relative; 
+    z-index: 1;
+    min-height: 100vh;
+    width: 100%;
+    padding-top: 60px; 
+}
+
+    /* ─── HEADER ─── */
+    .armory-header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: start;
+        gap: 30px;
+        padding: 20px 60px 40px;
+        max-width: 1600px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .header-eyebrow {
+        display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+    }
+    .header-eyebrow-line { width: 35px; height: 1px; background: var(--gold); flex-shrink: 0; }
+    .header-eyebrow-text {
+        font-size: 10px; font-weight: 800; letter-spacing: 4px;
+        color: var(--gold); white-space: nowrap;
+    }
+
+    .header-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: clamp(3rem, 7vw, 6.5rem);
+        line-height: 0.9;
+        letter-spacing: 2px;
+        white-space: nowrap;
+    }
+    .header-title span { color: var(--gold); display: block; }
+
+    .telemetry-hub {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border-dim);
+        border-radius: 24px;
+        padding: 24px;
+        display: flex; flex-direction: column;
+        gap: 16px;
+        min-width: 260px;
+        max-width: 320px;
+    }
+    .stat-node {
+        display: flex; align-items: center; justify-content: space-between;
+        font-size: 11px; font-weight: 800; letter-spacing: 2px;
+        color: var(--text-sec); text-transform: uppercase;
+        border-bottom: 1px solid var(--border-dim); padding-bottom: 10px;
+    }
+    .stat-node-right { display: flex; align-items: center; gap: 8px; }
+    .live-pulse {
+        width: 7px; height: 7px; background: var(--success-green);
+        border-radius: 50%; flex-shrink: 0;
+        animation: pulse 2s infinite;
+    }
+    .wishlist-anchor {
+        display: flex; align-items: center; gap: 10px;
+        background: rgba(255,180,0,0.08);
+        padding: 13px 20px; border-radius: 50px;
+        border: 1px solid var(--gold);
+        color: var(--gold); text-decoration: none;
+        font-weight: 800; font-size: 11px;
+        letter-spacing: 1px;
+        transition: 0.3s; white-space: nowrap;
+    }
+    .wishlist-anchor:hover {
+        background: var(--gold); color: #000;
+        box-shadow: 0 0 25px var(--gold-glow);
+        transform: translateY(-2px);
+    }
+
+    /* ─── CONTROLS ─── */
+    .armory-controls {
+        max-width: 1600px; margin: 0 auto 40px;
+        padding: 0 60px;
+        display: flex; align-items: center;
+        gap: 16px; flex-wrap: wrap;
+        width: 100%;
+    }
+    .filter-rail {
+        display: flex; flex-wrap: nowrap; overflow-x: auto;
+        background: rgba(255,255,255,0.03);
+        padding: 5px; border-radius: 16px;
+        border: 1px solid var(--border-dim);
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; flex-shrink: 0;
+    }
+    .filter-rail::-webkit-scrollbar { display: none; }
+    .filter-btn {
+        background: transparent; border: none;
+        color: var(--text-sec); padding: 10px 22px;
+        border-radius: 11px; font-weight: 700;
+        font-size: 11px; text-transform: uppercase;
+        cursor: pointer; transition: 0.25s;
+        white-space: nowrap; letter-spacing: 1px;
+    }
+    .filter-btn.active { background: var(--gold); color: #000; }
+    .filter-btn:hover:not(.active) { color: var(--text-prime); }
+
+    .search-engine { position: relative; flex: 1; min-width: 200px; max-width: 400px; }
+    .search-engine i {
+        position: absolute; left: 16px; top: 50%;
+        transform: translateY(-50%); color: var(--gold);
+        font-size: 13px; pointer-events: none;
+    }
+    .search-engine input {
+        width: 100%;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border-dim);
+        padding: 13px 14px 13px 44px;
+        border-radius: 13px; color: #fff;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px; transition: 0.3s;
+    }
+    .search-engine input:focus { border-color: var(--gold); outline: none; }
+    .search-engine input::placeholder { color: var(--text-sec); }
+
+    .sort-select {
+        background: rgba(255,255,255,0.03);
+        color: var(--text-prime);
+        border: 1px solid var(--border-dim);
+        padding: 13px 16px;
+        border-radius: 13px; cursor: pointer;
+        font-size: 11px; font-weight: 700;
+        letter-spacing: 1px; white-space: nowrap;
+        min-width: 170px;
+    }
+    .sort-select option { background: #111; color: #fff; }
+
+    /* ─── PRODUCT GRID ─── */
+    .product-grid {
+        max-width: 1600px; margin: 0 auto;
+        padding: 0 60px 80px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px; width: 100%;
+    }
+    .product-card {
+        background: rgba(13,13,13,0.9);
+        border: 1px solid var(--border-dim);
+        border-radius: 28px; overflow: hidden;
+        transition: 0.5s var(--ease-elite);
+        position: relative;
+        display: flex; flex-direction: column;
+        cursor: pointer;
+    }
+    .product-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--gold);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    }
+
+    .img-stage {
+        height: 260px; position: relative;
+        background: #080808;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px; overflow: hidden; flex-shrink: 0;
+    }
+    .prod-img { max-height: 100%; max-width: 100%; object-fit: contain; transition: 0.6s ease; }
+    .product-card:hover .prod-img { transform: scale(1.08) rotate(-1.5deg); }
+
+    .wish-trigger {
+        position: absolute; top: 16px; right: 16px; z-index: 5;
+        width: 42px; height: 42px; border-radius: 50%;
+        background: rgba(0,0,0,0.65); border: 1px solid var(--border-dim);
+        color: #fff; cursor: pointer; transition: 0.3s;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+    }
+    .wish-trigger.active { background: var(--danger-red); border-color: var(--danger-red); }
+    .wish-trigger:hover { transform: scale(1.1); }
+
+    .promo-tag {
+        position: absolute; top: 16px; left: 16px;
+        background: var(--danger-red); color: #fff;
+        padding: 4px 10px; border-radius: 7px;
+        font-size: 9px; font-weight: 900; letter-spacing: 1.5px;
+        z-index: 5;
+    }
+
+    .product-info {
+        padding: 24px; flex-grow: 1;
+        display: flex; flex-direction: column; gap: 0;
+    }
+    .prod-name {
+        font-size: 1.05rem; font-weight: 700; color: #fff;
+        margin-bottom: 8px; line-height: 1.4;
+        display: -webkit-box; -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .rating-row {
+        display: flex; align-items: center; gap: 7px;
+        margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .stars { color: var(--gold); font-size: 11px; white-space: nowrap; }
+    .rating-text { font-size: 11px; color: var(--text-sec); }
+
+    .price-container { margin-top: auto; }
+    .old-price {
+        font-size: 11px; color: var(--text-sec);
+        text-decoration: line-through; opacity: 0.6;
+        margin-bottom: 2px;
+    }
+    .current-price {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2rem; color: var(--gold);
+        display: flex; align-items: center; gap: 10px;
+        line-height: 1; flex-wrap: wrap;
+    }
+    .off-percent {
+        font-size: 10px; color: var(--success-green);
+        font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif;
+        letter-spacing: 0.5px;
+    }
+
+    /* ─── NO RESULTS ─── */
+    #no-results {
+        grid-column: 1 / -1; text-align: center;
+        padding: 80px 20px; display: none;
+        color: var(--text-sec);
+    }
+
+    /* ─── DETAIL PAGE (replaces modal) ─── */
+    .detail-page {
+        position: fixed; inset: 0; z-index: 9999;
+        background: var(--bg-void);
+        overflow-y: auto; overflow-x: hidden;
+        display: none;
+        animation: pageSlideIn 0.45s var(--ease-elite);
+    }
+    .detail-page.active { display: block; }
+    @keyframes pageSlideIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .detail-back-bar {
+        position: sticky; top: 0; z-index: 100;
+        background: rgba(5,5,5,0.92);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border-dim);
+        padding: 14px 40px;
+        display: flex; align-items: center; gap: 16px;
+    }
+    .detail-back-btn {
+        display: flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.05); border: 1px solid var(--border-dim);
+        color: var(--text-prime); padding: 9px 18px;
+        border-radius: 50px; cursor: pointer; transition: 0.3s;
+        font-size: 12px; font-weight: 700; letter-spacing: 1px;
+        white-space: nowrap;
+    }
+    .detail-back-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .detail-breadcrumb {
+        font-size: 11px; color: var(--text-sec);
+        letter-spacing: 2px; text-transform: uppercase;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .detail-breadcrumb span { color: var(--gold); }
+
+    .detail-body {
+        max-width: 1300px; margin: 0 auto;
+        padding: 50px 40px 80px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+    }
+
+    /* Left col */
+    .detail-img-wrap {
+        position: sticky; top: 80px;
+        background: rgba(8,8,8,0.8);
+        border: 1px solid var(--border-dim);
+        border-radius: 32px; overflow: hidden;
+        height: fit-content;
+    }
+    .detail-img-stage {
+        height: 400px; display: flex;
+        align-items: center; justify-content: center;
+        padding: 40px; background: #060606;
+    }
+    .detail-img-stage img {
+        max-width: 100%; max-height: 100%;
+        object-fit: contain;
+    }
+    .detail-img-meta {
+        padding: 20px 25px;
+        border-top: 1px solid var(--border-dim);
+        display: flex; align-items: center;
+        justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .detail-img-meta-tag {
+        font-size: 10px; font-weight: 800;
+        letter-spacing: 3px; color: var(--text-sec);
+        text-transform: uppercase;
+    }
+    .detail-availability {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 11px; font-weight: 700;
+        color: var(--success-green); letter-spacing: 1px;
+    }
+
+    /* Right col */
+    .detail-info { display: flex; flex-direction: column; }
+
+    .detail-category {
+        font-size: 10px; font-weight: 800;
+        letter-spacing: 4px; color: var(--gold);
+        text-transform: uppercase; margin-bottom: 12px;
+    }
+    .detail-name {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: clamp(2.2rem, 4vw, 3.5rem);
+        line-height: 1; margin-bottom: 20px;
+        letter-spacing: 1px; word-break: break-word;
+    }
+
+    .detail-rating-row {
+        display: flex; align-items: center; gap: 12px;
+        margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .detail-stars { color: var(--gold); font-size: 14px; }
+    .detail-rating-val { font-size: 13px; font-weight: 800; color: var(--text-prime); }
+    .detail-rating-count { font-size: 12px; color: var(--text-sec); }
+
+    .detail-price-box {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--border-dim);
+        border-radius: 20px; padding: 22px;
+        margin-bottom: 24px;
+    }
+    .detail-old-price {
+        font-size: 12px; color: var(--text-sec);
+        text-decoration: line-through; margin-bottom: 4px;
+    }
+    .detail-price {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 3rem; color: var(--gold);
+        line-height: 1; display: flex;
+        align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .detail-save-badge {
+        font-size: 11px; font-weight: 800;
+        color: #000; background: var(--success-green);
+        padding: 4px 10px; border-radius: 6px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .detail-desc {
+        font-size: 0.93rem; line-height: 1.75;
+        color: var(--text-prime); opacity: 0.82;
+        margin-bottom: 28px;
+    }
+
+    /* Delivery */
+    .detail-delivery {
+        background: rgba(0,255,136,0.04);
+        border: 1px solid rgba(0,255,136,0.12);
+        border-radius: 18px; padding: 20px;
+        margin-bottom: 28px;
+    }
+    .detail-delivery-header {
+        display: flex; align-items: center; gap: 8px;
+        color: var(--success-green); font-size: 11px;
+        font-weight: 900; letter-spacing: 2px;
+        text-transform: uppercase; margin-bottom: 10px;
+    }
+    .detail-delivery p { font-size: 13px; margin-bottom: 5px; }
+    .detail-delivery-addr { font-size: 11px; color: var(--text-sec); margin-top: 6px; }
+    .detail-delivery-addr a { color: var(--gold); text-decoration: underline; }
+
+    /* Reviews */
+    .detail-reviews-title {
+        font-size: 11px; font-weight: 800;
+        letter-spacing: 3px; color: var(--text-sec);
+        text-transform: uppercase; margin-bottom: 16px;
+    }
+    .review-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--border-dim);
+        border-radius: 18px; padding: 20px;
+        margin-bottom: 14px;
+        transition: 0.3s;
+    }
+    .review-card:hover {
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(201,168,76,0.2);
+    }
+    .review-card-header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px; flex-wrap: wrap; gap: 6px;
+    }
+    .review-author {
+        font-size: 13px; font-weight: 800; color: #fff;
+    }
+    .review-stars { color: var(--gold); font-size: 11px; }
+    .review-date { font-size: 10px; color: var(--text-sec); }
+    .review-text { font-size: 12px; color: var(--text-sec); line-height: 1.6; }
+
+    /* CTA */
+    .detail-cta-row {
+        display: grid; grid-template-columns: 1fr auto;
+        gap: 12px; margin-top: 10px; align-items: stretch;
+    }
+    .btn-acquire {
+        background: var(--gold); color: #000;
+        padding: 18px 24px; border-radius: 16px;
+        font-weight: 900; text-decoration: none;
+        text-align: center; letter-spacing: 2px;
+        font-size: 13px; transition: 0.3s;
+        display: flex; align-items: center;
+        justify-content: center; gap: 8px;
+        white-space: nowrap;
+    }
+    .btn-acquire:hover {
+        box-shadow: 0 12px 30px var(--gold-glow);
+        transform: translateY(-2px);
+        color: #000; text-decoration: none;
+    }
+    .btn-wish-detail {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border-dim);
+        color: var(--text-sec); cursor: pointer;
+        border-radius: 16px; padding: 18px 20px;
+        font-size: 16px; transition: 0.3s;
+        display: flex; align-items: center; justify-content: center;
+        white-space: nowrap;
+    }
+    .btn-wish-detail:hover { border-color: var(--danger-red); color: var(--danger-red); }
+    .btn-wish-detail.active { background: rgba(255,51,51,0.1); border-color: var(--danger-red); color: var(--danger-red); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+
+    /* ════════════════════════════════
+       TABLET  (769px – 1024px)
+    ════════════════════════════════ */
+    @media (max-width: 1024px) and (min-width: 769px) {
+        .armory-header { padding: 20px 30px 36px; gap: 20px; }
+        .telemetry-hub { min-width: 220px; }
+        .armory-controls { padding: 0 30px; }
+        .product-grid { padding: 0 30px 80px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+        .detail-body { padding: 40px 30px 60px; gap: 40px; }
+        .detail-img-stage { height: 320px; }
+    }
+
+    /* ════════════════════════════════
+       MOBILE  (≤768px)
+    ════════════════════════════════ */
+    @media (max-width: 768px) {
+
+        /* Header */
+        .armory-header {
+            display: flex; flex-direction: column;
+            padding: 16px 16px 24px; gap: 14px;
+        }
+        .header-title { font-size: clamp(2.4rem, 10vw, 3.2rem); white-space: nowrap; }
+        .telemetry-hub {
+            min-width: 0; max-width: 100%; width: 100%;
+            padding: 16px; border-radius: 18px; gap: 12px;
+        }
+
+        /* Controls */
+        .armory-controls {
+            padding: 0 16px; margin-bottom: 24px;
+            flex-direction: column; align-items: stretch; gap: 10px;
+        }
+        .filter-rail { width: 100%; border-radius: 14px; }
+        .filter-btn { padding: 9px 16px; font-size: 10px; }
+        .search-engine { max-width: 100%; min-width: 0; }
+        .sort-select { width: 100%; }
+
+        /* Grid */
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px; padding: 0 12px 60px;
+        }
+        .product-card { border-radius: 18px; }
+        .img-stage { height: 150px; padding: 10px; }
+        .product-info { padding: 12px; gap: 0; }
+        .prod-name { font-size: 0.82rem; margin-bottom: 6px; }
+        .rating-row { margin-bottom: 8px; gap: 4px; }
+        .stars, .rating-text { font-size: 10px; }
+        .old-price { font-size: 10px; }
+        .current-price { font-size: 1.4rem; gap: 5px; }
+        .off-percent { font-size: 9px; }
+        .wish-trigger { width: 34px; height: 34px; font-size: 12px; top: 10px; right: 10px; }
+        .promo-tag { font-size: 8px; padding: 3px 8px; top: 10px; left: 10px; }
+
+        /* Detail page */
+        .detail-back-bar { padding: 12px 16px; }
+        .detail-back-btn { padding: 8px 14px; font-size: 11px; }
+        .detail-breadcrumb { display: none; }
+
+        .detail-body {
+            grid-template-columns: 1fr;
+            padding: 20px 16px 60px;
+            gap: 28px;
+        }
+        .detail-img-wrap { position: static; }
+        .detail-img-stage { height: 260px; padding: 20px; }
+        .detail-name { font-size: clamp(2rem, 8vw, 2.8rem); }
+        .detail-price { font-size: 2.4rem; }
+        .detail-cta-row { grid-template-columns: 1fr auto; gap: 10px; }
+        .btn-acquire { padding: 15px 18px; font-size: 12px; }
+        .btn-wish-detail { padding: 15px 16px; }
+    }
+
+    /* Very small phones */
+    @media (max-width: 380px) {
+        .product-grid { grid-template-columns: 1fr; padding: 0 12px 60px; }
+        .header-title { font-size: 2.2rem; }
+        .detail-body { padding: 16px 12px 60px; }
+    }
+</style>
+
+<!-- ───────────────────────────────── -->
+<!--  ARMORY PAGE                       -->
+<!-- ───────────────────────────────── -->
+<div class="armory-wrapper">
+    <div class="bg-grid"></div>
+
+    <header class="armory-header">
+        <div>
+            <div class="header-eyebrow">
+                <div class="header-eyebrow-line"></div>
+                <span class="header-eyebrow-text">Elite Gear Systems</span>
+            </div>
+            <h1 class="header-title">Equipment <span>Armory</span></h1>
+        </div>
+
+        <div class="telemetry-hub">
+            <div class="stat-node">
+                <span>Live Market Sync</span>
+                <div class="stat-node-right">
+                    <div class="live-pulse"></div>
+                    <span style="color:#fff; font-size:11px;">Active</span>
+                </div>
+            </div>
+            <a href="{% url 'body:profile' %}#wishlist" class="wishlist-anchor">
+                <i class="fas fa-heart"></i>
+                Secured Vault &nbsp;(<span id="wl-count">0</span>)
+            </a>
+        </div>
+    </header>
+
+    <div class="armory-controls">
+        <div class="filter-rail">
+            <button class="filter-btn active" data-cat="all">All</button>
+            <button class="filter-btn" data-cat="supplements">Supplements</button>
+            <button class="filter-btn" data-cat="gear">Gear</button>
+            <button class="filter-btn" data-cat="apparel">Apparel</button>
+        </div>
+        <div class="search-engine">
+            <i class="fas fa-search"></i>
+            <input type="text" id="intel-search" placeholder="Search inventory…" autocomplete="off">
+        </div>
+        <select id="intel-sort" class="sort-select">
+            <option value="default">Default Priority</option>
+            <option value="low">Price: Low → High</option>
+            <option value="high">Price: High → Low</option>
+        </select>
+    </div>
+
+    <div class="product-grid" id="main-grid">
+        {% for product in products %}
+        <div class="product-card"
+             onclick="openDetail('{{ product.id }}', '{{ product.name|escapejs }}', '{{ product.price }}', '{{ product.description|escapejs }}', '{{ product.image_url|escapejs }}', '{{ product.category|escapejs }}')"
+             data-price="{{ product.price }}"
+             data-cat="{{ product.category|lower }}"
+             data-keywords="{{ product.name|lower }} {{ product.category|lower }}">
+
+            <div class="img-stage">
+                <div class="promo-tag">Limited Deal</div>
+                <button class="wish-trigger"
+                        onclick="event.stopPropagation(); handleWishlist('{{ product.id }}', '{{ product.name|escapejs }}', '{{ product.price }}', '{{ product.image_url|escapejs }}', this)">
+                    <i class="fas fa-heart"></i>
+                </button>
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="prod-img" loading="lazy">
+            </div>
+
+            <div class="product-info">
+                <h3 class="prod-name">{{ product.name }}</h3>
+                <div class="rating-row">
+                    <div class="stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <span class="rating-text">4.8 ({{ product.id|add:"124" }})</span>
+                </div>
+                <div class="price-container">
+                    <div class="old-price">MSRP ₹{{ product.price|add:"750" }}</div>
+                    <div class="current-price">
+                        ₹{{ product.price }}
+                        <span class="off-percent">Save 22%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div id="no-results">
+            <i class="fas fa-search" style="font-size:2rem; color:var(--text-sec); margin-bottom:16px; display:block;"></i>
+            <p style="font-size:1rem; color:var(--text-sec);">No products match your search.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ───────────────────────────────── -->
+<!--  FULL-SCREEN DETAIL PAGE           -->
+<!-- ───────────────────────────────── -->
+<div class="detail-page" id="detailPage">
+    <div class="bg-grid"></div>
+
+    <!-- Sticky back bar -->
+    <div class="detail-back-bar">
+        <button class="detail-back-btn" onclick="closeDetail()">
+            <i class="fas fa-arrow-left"></i> Back to Armory
+        </button>
+        <div class="detail-breadcrumb">
+            Armory &rsaquo; <span id="d-breadcrumb-cat">–</span> &rsaquo; <span id="d-breadcrumb-name">–</span>
+        </div>
+    </div>
+
+    <div class="detail-body">
+
+        <!-- Left: Image + meta -->
+        <div>
+            <div class="detail-img-wrap">
+                <div class="detail-img-stage">
+                    <img id="d-img" src="" alt="Product image">
+                </div>
+                <div class="detail-img-meta">
+                    <span class="detail-img-meta-tag" id="d-cat-tag">Category</span>
+                    <div class="detail-availability">
+                        <div class="live-pulse"></div> In Stock — Ships Now
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Info -->
+        <div class="detail-info">
+            <div class="detail-category" id="d-cat">–</div>
+            <h1 class="detail-name" id="d-name">–</h1>
+
+            <div class="detail-rating-row">
+                <div class="detail-stars">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                </div>
+                <span class="detail-rating-val">4.8</span>
+                <span class="detail-rating-count" id="d-review-count">(0 verified reviews)</span>
+            </div>
+
+            <div class="detail-price-box">
+                <div class="detail-old-price" id="d-old-price">–</div>
+                <div class="detail-price">
+                    <span id="d-price">–</span>
+                    <span class="detail-save-badge">You Save 22%</span>
+                </div>
+            </div>
+
+            <p class="detail-desc" id="d-desc">–</p>
+
+            <!-- Delivery -->
+            <div class="detail-delivery">
+                <div class="detail-delivery-header">
+                    <i class="fas fa-truck-fast"></i> Delivery Info
+                </div>
+                <p style="font-size:13px; color:var(--text-prime);">
+                    Estimated Arrival: <strong id="d-eta" style="color:#fff;">–</strong>
+                </p>
+                <div class="detail-delivery-addr" id="d-addr"></div>
+            </div>
+
+            <!-- Reviews -->
+            <div class="detail-reviews-title">Field Reports — Customer Reviews</div>
+
+            <div class="review-card">
+                <div class="review-card-header">
+                    <span class="review-author">Commander Maverick</span>
+                    <span class="review-stars">★★★★★</span>
+                </div>
+                <div class="review-date" style="margin-bottom:8px;">Verified Purchase · 3 days ago</div>
+                <p class="review-text">Industrial grade quality. No compromises, delivery was ahead of schedule. Will definitely reorder.</p>
+            </div>
+
+            <div class="review-card">
+                <div class="review-card-header">
+                    <span class="review-author">Elite Ops 09</span>
+                    <span class="review-stars">★★★★★</span>
+                </div>
+                <div class="review-date" style="margin-bottom:8px;">Verified Purchase · 1 week ago</div>
+                <p class="review-text">Material density is perfect. Zero structural failures after 3 months of daily use. Exactly as advertised.</p>
+            </div>
+
+            <div class="review-card">
+                <div class="review-card-header">
+                    <span class="review-author">Operative Sarah</span>
+                    <span class="review-stars">★★★★☆</span>
+                </div>
+                <div class="review-date" style="margin-bottom:8px;">Verified Purchase · 2 weeks ago</div>
+                <p class="review-text">Cleanest profile in its category. Zero bloat, mixes well. One star off only because packaging could be sturdier.</p>
+            </div>
+
+            <div class="review-card">
+                <div class="review-card-header">
+                    <span class="review-author">Iron Protocol X</span>
+                    <span class="review-stars">★★★★★</span>
+                </div>
+                <div class="review-date" style="margin-bottom:8px;">Verified Purchase · 3 weeks ago</div>
+                <p class="review-text">Fast dispatch, secure packaging, genuine product. Exactly what you want from a premium gear store.</p>
+            </div>
+
+            <!-- CTA -->
+            <div class="detail-cta-row">
+                <a id="d-buy-link" href="#" class="btn-acquire">
+                    <i class="fas fa-bolt"></i> Acquire Gear
+                </a>
+                <button class="btn-wish-detail" id="d-wish-btn" onclick="handleWishlistDetail()">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const grid   = document.getElementById('main-grid');
+    const search = document.getElementById('intel-search');
+    const sort   = document.getElementById('intel-sort');
+    const cards  = Array.from(document.querySelectorAll('.product-card'));
+    let currentDetailId = null;
+
+    /* ── Open full-screen detail ── */
+    window.openDetail = function (id, name, price, desc, img, cat) {
+        currentDetailId = String(id);
+
+        document.getElementById('d-img').src          = img;
+        document.getElementById('d-name').textContent  = name;
+        document.getElementById('d-cat').textContent   = (cat || 'Gear').toUpperCase();
+        document.getElementById('d-cat-tag').textContent = (cat || 'Gear').toUpperCase();
+        document.getElementById('d-desc').textContent  = desc;
+        document.getElementById('d-price').textContent = '₹' + price;
+        document.getElementById('d-old-price').textContent = 'MSRP ₹' + (parseInt(price) + 750);
+        document.getElementById('d-review-count').textContent = '(' + (parseInt(id) + 124) + ' verified reviews)';
+        document.getElementById('d-buy-link').href = '/shop/checkout/' + id + '/';
+        document.getElementById('d-breadcrumb-cat').textContent  = (cat || 'Gear');
+        document.getElementById('d-breadcrumb-name').textContent = name;
+
+        // ETA
+        const eta = new Date();
+        eta.setDate(eta.getDate() + 5);
+        document.getElementById('d-eta').textContent =
+            eta.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
+
+        // Address
+        const saved = localStorage.getItem('user_address');
+        document.getElementById('d-addr').innerHTML = saved
+            ? '<i class="fas fa-location-dot" style="color:var(--gold);margin-right:5px;"></i>Delivering to: ' + saved
+            : '<a href="/profile/#address">Add your address</a> for exact ETA.';
+
+        // Wishlist state
+        const wl  = JSON.parse(localStorage.getItem('user_wishlist')) || [];
+        const btn = document.getElementById('d-wish-btn');
+        if (wl.some(i => String(i.id) === String(id))) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+
+        const page = document.getElementById('detailPage');
+        page.classList.add('active');
+        page.scrollTop = 0;
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeDetail = function () {
+        document.getElementById('detailPage').classList.remove('active');
+        document.body.style.overflow = '';
+        currentDetailId = null;
+    };
+
+    // Close on Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeDetail();
+    });
+
+    /* ── Wishlist from detail page ── */
+    window.handleWishlistDetail = function () {
+        if (!currentDetailId) return;
+        const name  = document.getElementById('d-name').textContent;
+        const price = document.getElementById('d-price').textContent.replace('₹', '');
+        const img   = document.getElementById('d-img').src;
+        const btn   = document.getElementById('d-wish-btn');
+
+        let list = JSON.parse(localStorage.getItem('user_wishlist')) || [];
+        const idx = list.findIndex(i => String(i.id) === String(currentDetailId));
+        if (idx === -1) {
+            list.push({ id: currentDetailId, name, price, img });
+            btn.classList.add('active');
+        } else {
+            list.splice(idx, 1);
+            btn.classList.remove('active');
+        }
+        localStorage.setItem('user_wishlist', JSON.stringify(list));
+        updateWLCount();
+
+        // Sync card button too
+        syncCardWish(currentDetailId, idx === -1);
+    };
+
+    /* ── Wishlist from card ── */
+    window.handleWishlist = function (id, name, price, img, btn) {
+        let list = JSON.parse(localStorage.getItem('user_wishlist')) || [];
+        const idx = list.findIndex(i => String(i.id) === String(id));
+        if (idx === -1) {
+            list.push({ id, name, price, img });
+            btn.classList.add('active');
+        } else {
+            list.splice(idx, 1);
+            btn.classList.remove('active');
+        }
+        localStorage.setItem('user_wishlist', JSON.stringify(list));
+        updateWLCount();
+    };
+
+    function syncCardWish(id, isActive) {
+        cards.forEach(card => {
+            const btn = card.querySelector('.wish-trigger');
+            if (!btn) return;
+            const m = btn.getAttribute('onclick').match(/'([^']+)'/);
+            if (m && String(m[1]) === String(id)) {
+                isActive ? btn.classList.add('active') : btn.classList.remove('active');
+            }
+        });
+    }
+
+    function updateWLCount() {
+        const list = JSON.parse(localStorage.getItem('user_wishlist')) || [];
+        const el = document.getElementById('wl-count');
+        if (el) el.textContent = list.length;
+    }
+
+    /* ── Filter / Search / Sort ── */
+    function updateDisplay() {
+        if (!grid) return;
+        const query     = search.value.toLowerCase().trim();
+        const activeBtn = document.querySelector('.filter-btn.active');
+        const activeCat = activeBtn ? activeBtn.dataset.cat : 'all';
+        const sortVal   = sort.value;
+
+        let visible = cards.filter(card => {
+            const matchSearch = query === '' || card.dataset.keywords.includes(query);
+            const matchCat    = activeCat === 'all' || card.dataset.cat === activeCat;
+            return matchSearch && matchCat;
+        });
+
+        if (sortVal === 'low')  visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+        if (sortVal === 'high') visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+
+        cards.forEach(c => { c.style.display = 'none'; });
+        visible.forEach(c => { c.style.display = 'flex'; grid.appendChild(c); });
+
+        const noRes = document.getElementById('no-results');
+        if (noRes) noRes.style.display = visible.length === 0 ? 'block' : 'none';
+    }
+
+    if (search) search.addEventListener('input', updateDisplay);
+    if (sort)   sort.addEventListener('change', updateDisplay);
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            updateDisplay();
+        });
+    });
+
+    /* ── Init ── */
+    window.addEventListener('load', function () {
+        updateDisplay();
+        updateWLCount();
+        const list = JSON.parse(localStorage.getItem('user_wishlist')) || [];
+        cards.forEach(card => {
+            const btn = card.querySelector('.wish-trigger');
+            if (!btn) return;
+            const m = btn.getAttribute('onclick').match(/'([^']+)'/);
+            if (m && list.some(item => String(item.id) === String(m[1]))) {
+                btn.classList.add('active');
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

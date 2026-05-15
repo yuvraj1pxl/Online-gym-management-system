@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="elite-checkout-portal">
+    <div class="split-container">
+        
+        <div class="summary-pane">
+            <div class="inner-sticky">
+                <div class="badge-row mb-4">
+                    <span class="secure-tag"><i class="fas fa-lock me-2"></i>SECURE GATEWAY</span>
+                </div>
+                
+                <h1 class="gold fw-900 text-uppercase mb-5" style="letter-spacing: -1px;">Review Order</h1>
+
+                <div class="product-spotlight mb-5">
+                    <div class="product-img-card">
+                        {% if product.image_url %}
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <i class="fas fa-dumbbell fa-3x text-muted"></i>
+                        {% endif %}
+                    </div>
+                    <div class="ms-4">
+                        <h3 class="text-white fw-bold mb-1">{{ product.name }}</h3>
+                        <p class="text-muted small mb-0 text-uppercase">Authentic Sport Nutrition</p>
+                    </div>
+                </div>
+
+                <div class="invoice-details pt-4 border-top border-secondary">
+                    <div class="inv-row">
+                        <span>Base Price</span>
+                        <span>₹{{ product.price }}</span>
+                    </div>
+                    <div class="inv-row">
+                        <span>Logistics</span>
+                        <span class="text-success fw-bold">FREE</span>
+                    </div>
+                    <div class="inv-row total-row mt-4">
+                        <span class="gold fw-900">NET TOTAL</span>
+                        <span class="gold fw-900 h1 mb-0">₹{{ product.price }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-pane">
+            <form method="POST" id="checkout-form">
+                {% csrf_token %}
+                
+                <div class="section-group mb-5">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="step-blob">01</div>
+                        <h5 class="gold text-uppercase fw-bold mb-0">Shipping Details</h5>
+                    </div>
+                    
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="field-label">Full Name</label>
+                            <input type="text" name="full_name" class="elite-input" value="{{ request.user.get_full_name }}" required placeholder="Your full name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="field-label">Email</label>
+                            <input type="email" name="email" class="elite-input" value="{{ request.user.email }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="field-label">Phone</label>
+                            <input type="text" name="phone" class="elite-input" value="{{ user_phone }}" required placeholder="+91">
+                        </div>
+                        <div class="col-12">
+                            <label class="field-label">Address</label>
+                            <textarea name="address" class="elite-input" rows="4" required placeholder="Full shipping address...">{{ user_address }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-group">
+                    <div class="d-flex align-items-center gap-3 mb-4 pt-4 border-top border-secondary">
+                        <div class="step-blob">02</div>
+                        <h5 class="gold text-uppercase fw-bold mb-0">Payment Method</h5>
+                    </div>
+
+                    <div class="upi-method-card mb-5">
+                        <div class="d-flex align-items-center">
+                            <div class="method-icon"><i class="fas fa-mobile-alt gold"></i></div>
+                            <div class="ms-3">
+                                <b class="text-white">Unified Payments Interface (UPI)</b>
+                                <p class="text-muted small mb-0">Fast, Secure, Encrypted</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="cta-pay-btn">
+                        <span class="btn-text">INITIATE PAYMENT</span>
+                        <i class="fas fa-arrow-right ms-3"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* ─── ELITE CHECKOUT PORTAL v2.0 ─── */
+    .elite-checkout-portal {
+        min-height: 100vh;
+        background: #000;
+        padding-top: 100px; /* Recalibrated for slim nav */
+        display: flex;
+        justify-content: center;
+        padding-bottom: 50px;
+    }
+
+    .split-container {
+        display: flex;
+        width: 100%;
+        max-width: 1200px;
+        background: rgba(15, 15, 15, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        backdrop-filter: blur(40px);
+        overflow: hidden;
+        margin: 0 20px;
+    }
+
+    /* Left Pane - Order Summary */
+    .summary-pane {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 60px;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .inner-sticky { position: sticky; top: 120px; }
+
+    /* Right Pane - Form Details */
+    .form-pane {
+        flex: 1.2;
+        padding: 60px;
+    }
+
+    /* UI Components */
+    .secure-tag { 
+        font-size: 0.65rem; font-weight: 900; color: #00ff88; 
+        background: rgba(0, 255, 136, 0.05); padding: 6px 14px; 
+        border-radius: 50px; border: 1px solid rgba(0, 255, 136, 0.2); 
+    }
+    
+    .product-spotlight { display: flex; align-items: center; }
+    .product-img-card { 
+        width: 110px; height: 110px; background: #080808; border-radius: 20px; 
+        padding: 10px; border: 1px solid rgba(255,255,255,0.05); 
+        display: flex; align-items: center; justify-content: center;
+    }
+    .product-img-card img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+    .inv-row { display: flex; justify-content: space-between; margin-bottom: 12px; color: #888; font-weight: 600; font-size: 0.9rem; }
+    .total-row { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; color: #fff; }
+
+    .step-blob { width: 30px; height: 30px; background: var(--accent); color: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; }
+    
+    .field-label { color: #666; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 1px; }
+    .elite-input { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid #222; border-radius: 12px; padding: 15px; color: white; transition: 0.3s; font-size: 0.9rem; }
+    .elite-input:focus { border-color: var(--accent); outline: none; background: rgba(255,255,255,0.06); box-shadow: 0 0 20px rgba(255,180,0,0.1); }
+
+    .upi-method-card { background: rgba(255,180,0,0.05); border: 1px solid rgba(255,180,0,0.3); border-radius: 15px; padding: 20px; }
+    .method-icon { width: 45px; height: 45px; background: rgba(255,180,0,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+    .cta-pay-btn { width: 100%; padding: 22px; background: var(--accent); border: none; border-radius: 18px; font-weight: 900; color: #000; transition: 0.4s; letter-spacing: 1px; cursor: pointer; }
+    .cta-pay-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(255,180,0,0.3); }
+
+    /* ─── RESPONSIVE OVERHAUL (MOBILE & TABLET) ─── */
+    @media (max-width: 992px) {
+        .elite-checkout-portal { padding-top: 80px; }
+        .split-container { 
+            flex-direction: column; 
+            border-radius: 0; 
+            border: none; 
+            margin: 0; 
+            background: #000;
+        }
+        .summary-pane { 
+            padding: 40px 20px; 
+            border-right: none; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+        }
+        .inner-sticky { position: static; }
+        .form-pane { 
+            padding: 40px 20px; 
+        }
+        
+        /* Scale typography for phone */
+        h1.gold { font-size: 2.2rem !important; }
+        .product-spotlight h3 { font-size: 1.2rem !important; }
+        .product-img-card { width: 80px; height: 80px; }
+        
+        .inv-row { font-size: 0.8rem; }
+        .total-row span.h1 { font-size: 1.8rem !important; }
+
+        .elite-input { padding: 12px; }
+        .cta-pay-btn { padding: 18px; font-size: 0.9rem; }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ─── 1. FETCH SAVED DATA FROM LOCAL STORAGE ───
+        const savedAddress = localStorage.getItem('user_address');
+        const savedPhone = localStorage.getItem('user_phone');
+
+        const addrField = document.querySelector('textarea[name="address"]');
+        const phoneField = document.querySelector('input[name="phone"]');
+
+        // Auto-fill if fields are empty (prevents overwriting if Django already provided data)
+        if (addrField && savedAddress && addrField.value.trim() === "") {
+            addrField.value = savedAddress;
+        }
+        if (phoneField && savedPhone && (phoneField.value.trim() === "" || phoneField.value === "+91")) {
+            phoneField.value = savedPhone;
+        }
+    });
+
+    // ─── 2. PAYMENT INITIATION & REDIRECTION ───
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        const btn = document.querySelector('.cta-pay-btn');
+        
+        // Visual Feedback
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> REDIRECTING TO UPI...';
+        btn.style.pointerEvents = "none";
+        btn.style.opacity = "0.7";
+
+        // MOBILE ONLY: Trigger UPI Intent Link
+        // pa = Your UPI ID, pn = Merchant Name, am = Amount, cu = Currency
+        if (window.innerWidth < 768) {
+            const upiId = "yuvraj@upi"; // REPLACE THIS WITH YOUR REAL UPI ID
+            const merchantName = "GYMSHIM";
+            const amount = "{{ product.price }}";
+            const upiUrl = `upi://pay?pa=${upiId}&pn=${merchantName}&am=${amount}&cu=INR`;
+
+            // Small delay to let the user see the "Redirecting" state
+            setTimeout(() => {
+                window.location.href = upiUrl;
+            }, 800);
+        }
+        
+        // Note: The form will still POST to your Django backend 
+        // so you can save the order details in your database.
+    });
+</script>
+{% endblock %}

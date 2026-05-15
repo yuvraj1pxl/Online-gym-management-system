@@ -1,0 +1,990 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}GYM-SHIM · IMS Command Centre{% endblock %}
+
+{% block extrahead %}
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   GYM-SHIM IMS v4.0 — SOVEREIGN COMMAND CENTRE
+   Industrial-luxury. Every pixel accountable.
+═══════════════════════════════════════════════════════════ */
+:root {
+    --bg:         #040404;
+    --s1:         #0a0a0a;
+    --s2:         #111;
+    --s3:         #181818;
+    --s4:         #222;
+    --gold:       #C9A84C;
+    --gold-d:     #a8882e;
+    --gold-glow:  rgba(201,168,76,0.15);
+    --red:        #e84040;
+    --red-g:      rgba(232,64,64,0.12);
+    --green:      #22c55e;
+    --green-g:    rgba(34,197,94,0.12);
+    --blue:       #3b82f6;
+    --blue-g:     rgba(59,130,246,0.12);
+    --purple:     #a855f7;
+    --purple-g:   rgba(168,85,247,0.12);
+    --text:       #e8e4dc;
+    --text-2:     #888880;
+    --text-3:     #3a3835;
+    --border:     rgba(255,255,255,0.055);
+    --border-2:   rgba(255,255,255,0.1);
+    --ease:       cubic-bezier(0.19,1,0.22,1);
+    --r:          18px;
+    --r-sm:       12px;
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+
+/* Override Django admin chrome */
+#content-main,#content,.content,#content-related{
+    background:var(--bg)!important;color:var(--text)!important;
+    font-family:'Plus Jakarta Sans',sans-serif!important;padding:0!important;margin:0!important;
+}
+#content-main{padding:0 28px 60px!important;}
+.breadcrumbs{display:none!important;}
+#content h1{display:none!important;}
+
+/* ── LAYOUT SHELL ── */
+.ims-shell{width:100%;max-width:1800px;margin:0 auto;padding-top:24px;}
+
+/* ── TOP NAV BAR ── */
+.ims-nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 0 24px;border-bottom:1px solid var(--border);
+    margin-bottom:24px;flex-wrap:wrap;gap:14px;
+}
+.ims-brand{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:4px;color:var(--gold);}
+.ims-brand em{color:var(--text);font-style:normal;}
+.ims-clock{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-2);letter-spacing:1px;}
+.live-dot{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:5px;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+
+/* ── SECTION TABS ── */
+.tab-bar{display:flex;gap:4px;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:5px;margin-bottom:24px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{background:transparent;border:none;color:var(--text-2);padding:10px 20px;border-radius:var(--r-sm);font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:0.25s;white-space:nowrap;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{background:var(--gold);color:#000;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadeUp 0.4s var(--ease);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── ALERT TICKER ── */
+.ticker{
+    display:flex;align-items:center;gap:14px;
+    background:var(--s2);border:1px solid rgba(232,64,64,0.2);
+    border-radius:var(--r-sm);padding:10px 18px;margin-bottom:20px;overflow:hidden;
+}
+.ticker-tag{font-size:9px;font-weight:900;letter-spacing:2px;color:var(--red);background:var(--red-g);padding:4px 10px;border-radius:6px;text-transform:uppercase;white-space:nowrap;}
+.ticker-inner{flex:1;overflow:hidden;white-space:nowrap;font-size:11px;font-weight:700;color:var(--text-2);font-family:'JetBrains Mono',monospace;}
+.ticker-text{display:inline-block;animation:scroll 28s linear infinite;}
+@keyframes scroll{from{transform:translateX(60%)}to{transform:translateX(-100%)}}
+
+/* ── CARDS ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);position:relative;overflow:hidden;}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.1),transparent);}
+.card-pad{padding:22px;}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:2px;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title i{color:var(--gold);font-size:0.95rem;}
+.card-title .export-btn{margin-left:auto;background:var(--s3);border:1px solid var(--border-2);color:var(--text-2);padding:5px 12px;border-radius:8px;font-size:9px;font-weight:800;letter-spacing:1px;cursor:pointer;text-transform:uppercase;transition:0.2s;font-family:'Plus Jakarta Sans',sans-serif;}
+.card-title .export-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px;}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px 0;position:relative;overflow:hidden;transition:0.35s var(--ease);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi.kc-gold::before{background:linear-gradient(90deg,var(--gold),transparent);}
+.kpi.kc-green::before{background:linear-gradient(90deg,var(--green),transparent);}
+.kpi.kc-red::before{background:linear-gradient(90deg,var(--red),transparent);}
+.kpi.kc-blue::before{background:linear-gradient(90deg,var(--blue),transparent);}
+.kpi.kc-purple::before{background:linear-gradient(90deg,var(--purple),transparent);}
+.kpi:hover{border-color:var(--border-2);transform:translateY(-3px);}
+.kpi-lbl{font-size:9px;font-weight:800;letter-spacing:2.5px;color:var(--text-2);text-transform:uppercase;margin-bottom:8px;}
+.kpi-val{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;line-height:1;margin-bottom:6px;}
+.kpi-val.gold{color:var(--gold);}
+.kpi-val.green{color:var(--green);}
+.kpi-val.red{color:var(--red);}
+.kpi-val.blue{color:var(--blue);}
+.kpi-val.white{color:var(--text);}
+.kpi-sub{font-size:10px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:4px;}
+.kpi-sub.up{color:var(--green);}.kpi-sub.down{color:var(--red);}.kpi-sub.warn{color:var(--gold);}.kpi-sub.info{color:var(--blue);}
+.kpi-spark{height:44px;margin:0 -22px;}
+.kpi-foot{border-top:1px solid var(--border);padding:10px 0;font-size:10px;}
+.kpi-foot a{color:var(--text-2);text-decoration:none;font-weight:700;letter-spacing:0.5px;transition:0.2s;}
+.kpi-foot a:hover{color:var(--gold);}
+
+/* ── GRID LAYOUTS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;}
+.g21{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px;}
+.g12{display:grid;grid-template-columns:1fr 1.5fr;gap:16px;margin-bottom:16px;}
+.g211{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+
+/* ── TABLES ── */
+.ims-table{width:100%;border-collapse:separate;border-spacing:0 7px;}
+.ims-table thead th{font-size:9px;font-weight:800;letter-spacing:2.5px;color:var(--text-2);text-transform:uppercase;padding:0 14px 10px;text-align:left;border-bottom:1px solid var(--border);}
+.ims-table tbody tr{transition:0.2s;}
+.ims-table tbody tr:hover td{background:var(--s2)!important;}
+.ims-table tbody td{padding:12px 14px;background:rgba(255,255,255,0.018);font-size:13px;vertical-align:middle;}
+.ims-table tbody td:first-child{border-radius:10px 0 0 10px;}
+.ims-table tbody td:last-child{border-radius:0 10px 10px 0;}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:9px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;}
+.b-success{background:var(--green-g);color:var(--green);}
+.b-warn{background:var(--gold-glow);color:var(--gold);}
+.b-danger{background:var(--red-g);color:var(--red);}
+.b-info{background:var(--blue-g);color:var(--blue);}
+.b-muted{background:rgba(255,255,255,0.05);color:var(--text-2);}
+.b-purple{background:var(--purple-g);color:var(--purple);}
+
+/* ── INVENTORY BARS ── */
+.inv-row{margin-bottom:13px;}
+.inv-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
+.inv-name{font-weight:700;color:var(--text);}
+.inv-val{font-family:'JetBrains Mono',monospace;font-size:10px;}
+.inv-val.ok{color:var(--green);}.inv-val.warn{color:var(--gold);}.inv-val.crit{color:var(--red);}
+.inv-track{height:5px;background:var(--s3);border-radius:10px;overflow:hidden;}
+.inv-fill{height:100%;border-radius:10px;transition:width 1.2s var(--ease);}
+.inv-fill.ok{background:var(--green);}.inv-fill.warn{background:var(--gold);}.inv-fill.crit{background:var(--red);}
+
+/* ── PIPELINE ── */
+.pipe-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);}
+.pipe-row:last-child{border-bottom:none;}
+.pipe-stage{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--text-2);width:80px;flex-shrink:0;}
+.pipe-track{flex:1;height:6px;background:var(--s3);border-radius:10px;overflow:hidden;}
+.pipe-fill{height:100%;border-radius:10px;transition:width 1.2s var(--ease);}
+.pipe-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);width:32px;text-align:right;flex-shrink:0;}
+
+/* ── QUICK ACTIONS ── */
+.qa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.qa-btn{display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:12px;background:rgba(255,255,255,0.025);border:1px solid var(--border);color:var(--text-2);text-decoration:none;font-size:11px;font-weight:700;letter-spacing:0.3px;transition:0.22s var(--ease);}
+.qa-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-glow);transform:translateY(-2px);}
+.qa-btn i{font-size:13px;width:16px;text-align:center;}
+
+/* ── RANKING ITEMS ── */
+.rank-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.rank-row:last-child{border-bottom:none;}
+.rank-num{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--text-3);width:28px;flex-shrink:0;}
+.rank-num.top{color:var(--gold);}
+.rank-info{flex:1;min-width:0;}
+.rank-name{font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rank-sub{font-size:10px;color:var(--text-2);margin-top:2px;}
+.rank-val{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0;text-align:right;}
+.rank-val.gold{color:var(--gold);}
+.rank-val.green{color:var(--green);}
+.rank-val.red{color:var(--red);}
+
+/* ── CUSTOMER SEGMENTS ── */
+.seg-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.seg-row:last-child{border-bottom:none;}
+.seg-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.seg-info{flex:1;}
+.seg-name{font-weight:700;font-size:12px;color:var(--text);}
+.seg-sub{font-size:10px;color:var(--text-2);margin-top:2px;}
+.seg-bar-wrap{width:100px;flex-shrink:0;}
+.seg-track{height:4px;background:var(--s3);border-radius:10px;overflow:hidden;margin-top:4px;}
+.seg-fill{height:100%;border-radius:10px;}
+
+/* ── GEO TABLE ── */
+.geo-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:0.2s;}
+.geo-row:last-child{border-bottom:none;}
+.geo-row:hover{background:var(--s2);border-radius:8px;padding-left:8px;}
+.geo-flag{font-size:16px;width:24px;text-align:center;}
+.geo-name{flex:1;font-size:13px;font-weight:700;color:var(--text);}
+.geo-bar-wrap{width:80px;}
+.geo-bar-track{height:4px;background:var(--s3);border-radius:10px;overflow:hidden;}
+.geo-bar-fill{height:100%;border-radius:10px;background:var(--gold);}
+.geo-rev{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);width:70px;text-align:right;}
+.geo-orders{font-size:10px;color:var(--text-2);width:40px;text-align:right;}
+
+/* ── GEO DETAIL MODAL ── */
+.geo-detail{
+    display:none;background:var(--s2);border:1px solid var(--gold);
+    border-radius:var(--r);padding:20px;margin-top:12px;
+    animation:fadeUp 0.3s var(--ease);
+}
+.geo-detail.show{display:block;}
+.geo-detail-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:2px;margin-bottom:14px;}
+
+/* ── ABC ANALYSIS ── */
+.abc-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);}
+.abc-row:last-child{border-bottom:none;}
+.abc-badge{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;}
+.abc-a{background:rgba(34,197,94,0.15);color:var(--green);}
+.abc-b{background:rgba(201,168,76,0.15);color:var(--gold);}
+.abc-c{background:rgba(232,64,64,0.15);color:var(--red);}
+.abc-info{flex:1;}
+.abc-name{font-size:12px;font-weight:700;color:var(--text);}
+.abc-sub{font-size:10px;color:var(--text-2);}
+.abc-pct{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;}
+
+/* ── VELOCITY METER ── */
+.vel-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);}
+.vel-row:last-child{border-bottom:none;}
+.vel-name{flex:1;font-size:12px;font-weight:700;color:var(--text);}
+.vel-track{width:100px;height:6px;background:var(--s3);border-radius:10px;overflow:hidden;flex-shrink:0;}
+.vel-fill{height:100%;border-radius:10px;}
+.vel-fill.fast{background:var(--green);}.vel-fill.med{background:var(--gold);}.vel-fill.slow{background:var(--text-3);}
+.vel-val{font-family:'JetBrains Mono',monospace;font-size:10px;width:70px;text-align:right;flex-shrink:0;}
+.vel-badge{font-size:9px;font-weight:900;padding:2px 8px;border-radius:6px;letter-spacing:1px;flex-shrink:0;}
+.vel-badge.fast{background:var(--green-g);color:var(--green);}
+.vel-badge.med{background:var(--gold-glow);color:var(--gold);}
+.vel-badge.slow{background:rgba(255,255,255,0.05);color:var(--text-2);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1400px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.g211{grid-template-columns:1fr 1fr;}.g21{grid-template-columns:1fr;}.g12{grid-template-columns:1fr;}}
+@media(max-width:768px){
+    #content-main{padding:0 14px 40px!important;}
+    .kpi-grid{grid-template-columns:1fr 1fr;}
+    .g2,.g3,.g21,.g12,.g211{grid-template-columns:1fr;}
+    .qa-grid{grid-template-columns:1fr 1fr;}
+    .tab-btn{padding:9px 14px;font-size:10px;}
+}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr;}.qa-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ims-shell">
+
+<!-- ── TICKER ── -->
+<div class="ticker">
+    <div class="ticker-tag"><i class="fas fa-triangle-exclamation"></i> &nbsp;Alert</div>
+    <div class="ticker-inner"><span class="ticker-text" id="tickerTxt">Loading...</span></div>
+    <div style="font-size:10px;color:var(--text-2);white-space:nowrap;font-family:'JetBrains Mono',monospace;" id="tickerTime"></div>
+</div>
+
+<!-- ── TOP NAV ── -->
+<div class="ims-nav">
+    <div>
+        <div class="ims-brand">GYM<em>·</em>SHIM &nbsp;<em style="font-size:0.9rem;letter-spacing:2px;color:var(--text-2);">IMS COMMAND CENTRE</em></div>
+        <div class="ims-clock"><span class="live-dot"></span>LIVE · <span id="clock"></span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="exportFullPDF()" class="qa-btn" style="cursor:pointer;font-size:10px;padding:8px 16px;">
+            <i class="fas fa-file-pdf" style="color:var(--red);"></i> Export PDF
+        </button>
+        <button onclick="exportFullExcel()" class="qa-btn" style="cursor:pointer;font-size:10px;padding:8px 16px;">
+            <i class="fas fa-file-excel" style="color:var(--green);"></i> Export Excel
+        </button>
+        <a href="/admin/body/product/add/" class="qa-btn" style="padding:8px 16px;font-size:10px;"><i class="fas fa-plus"></i> Add Product</a>
+        <a href="/admin/body/admission/add/" class="qa-btn" style="padding:8px 16px;font-size:10px;"><i class="fas fa-user-plus"></i> New Member</a>
+    </div>
+</div>
+
+<!-- ── KPI CARDS ── -->
+<div class="kpi-grid">
+    <div class="kpi kc-gold">
+        <div class="kpi-lbl">Gross Revenue</div>
+        <div class="kpi-val gold">₹{{ total_revenue|default:"0" }}</div>
+        <div class="kpi-sub up"><i class="fas fa-arrow-trend-up"></i> All-time from sales</div>
+        <canvas class="kpi-spark" id="sk1"></canvas>
+        <div class="kpi-foot"><a href="/admin/body/sale/">Sales Ledger →</a></div>
+    </div>
+    <div class="kpi kc-green">
+        <div class="kpi-lbl">Net Profit</div>
+        <div class="kpi-val green">₹{{ net_profit|default:"0" }}</div>
+        <div class="kpi-sub up"><i class="fas fa-shield-check"></i> After 10% overhead</div>
+        <canvas class="kpi-spark" id="sk2"></canvas>
+        <div class="kpi-foot"><a href="/admin/body/admissionpayment/">Payments →</a></div>
+    </div>
+    <div class="kpi kc-red">
+        <div class="kpi-lbl">Operational Loss</div>
+        <div class="kpi-val red">₹{{ operational_loss|default:"0" }}</div>
+        <div class="kpi-sub down"><i class="fas fa-circle-minus"></i> Estimated overhead</div>
+        <canvas class="kpi-spark" id="sk3"></canvas>
+        <div class="kpi-foot"><a href="/admin/">Audit →</a></div>
+    </div>
+    <div class="kpi kc-blue">
+        <div class="kpi-lbl">Total Members</div>
+        <div class="kpi-val blue">{{ total_members|default:"0" }}</div>
+        <div class="kpi-sub info"><i class="fas fa-users"></i> Registered admissions</div>
+        <canvas class="kpi-spark" id="sk4"></canvas>
+        <div class="kpi-foot"><a href="/admin/body/admission/">Members →</a></div>
+    </div>
+    <div class="kpi kc-purple">
+        <div class="kpi-lbl">Store Orders</div>
+        <div class="kpi-val" style="color:var(--purple);">{{ total_orders|default:"0" }}</div>
+        <div class="kpi-sub" style="color:var(--purple);"><i class="fas fa-shopping-bag"></i> All time orders</div>
+        <canvas class="kpi-spark" id="sk5"></canvas>
+        <div class="kpi-foot"><a href="/admin/body/productorder/">Orders →</a></div>
+    </div>
+</div>
+
+<!-- ── TAB BAR ── -->
+<div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('overview',this)"><i class="fas fa-chart-line"></i> Overview</button>
+    <button class="tab-btn" onclick="showTab('inventory',this)"><i class="fas fa-boxes-stacked"></i> Inventory & Velocity</button>
+    <button class="tab-btn" onclick="showTab('customers',this)"><i class="fas fa-users"></i> Customers</button>
+    <button class="tab-btn" onclick="showTab('geography',this)"><i class="fas fa-map-location-dot"></i> Geography</button>
+    <button class="tab-btn" onclick="showTab('abc',this)"><i class="fas fa-ranking-star"></i> ABC Analysis</button>
+    <button class="tab-btn" onclick="showTab('activity',this)"><i class="fas fa-list-check"></i> Activity Log</button>
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 1 — OVERVIEW
+════════════════════════════════ -->
+<div id="tab-overview" class="tab-panel active">
+
+    <div class="g21">
+        <!-- Main Performance Chart -->
+        <div class="card card-pad">
+            <div class="card-title">
+                <i class="fas fa-chart-bar"></i> Performance Intelligence
+                <div style="display:flex;gap:5px;margin-left:auto;">
+                    <button class="tab-btn active" style="padding:5px 12px;font-size:9px;" onclick="switchMain('bar',this)">BAR</button>
+                    <button class="tab-btn" style="padding:5px 12px;font-size:9px;" onclick="switchMain('line',this)">LINE</button>
+                    <button class="tab-btn" style="padding:5px 12px;font-size:9px;" onclick="switchMain('radar',this)">RADAR</button>
+                </div>
+                <button class="export-btn" onclick="exportChart('mainChart','performance')"><i class="fas fa-download"></i> PNG</button>
+            </div>
+            <div style="height:300px;position:relative;"><canvas id="mainChart"></canvas></div>
+        </div>
+
+        <!-- Donut + legend -->
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-chart-pie"></i> Revenue Split</div>
+            <div style="height:180px;position:relative;"><canvas id="donutChart"></canvas></div>
+            <div style="margin-top:14px;">
+                {% for row in revenue_split %}
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+                    <div style="width:9px;height:9px;border-radius:3px;background:{{ row.color }};flex-shrink:0;"></div>
+                    <span style="flex:1;font-size:11px;color:var(--text-2);">{{ row.label }}</span>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text);">₹{{ row.value }}</span>
+                    <span style="font-size:10px;color:var(--text-2);">{{ row.pct }}%</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Pipeline + Quick Actions + Mini Metrics -->
+    <div class="g3">
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-filter"></i> Orders Pipeline<button class="export-btn" onclick="exportTablePDF('pipelineTable','Orders Pipeline')"><i class="fas fa-download"></i> PDF</button></div>
+            <div id="pipelinePanel">
+                {% for status,count,color,pct in order_pipeline %}
+                <div class="pipe-row">
+                    <div class="pipe-stage">{{ status }}</div>
+                    <div class="pipe-track"><div class="pipe-fill" style="width:{{ pct }}%;background:{{ color }};"></div></div>
+                    <div class="pipe-count">{{ count }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+            <div class="qa-grid">
+                <a href="/admin/body/product/add/" class="qa-btn"><i class="fas fa-plus-circle"></i> Add Product</a>
+                <a href="/admin/body/admission/add/" class="qa-btn"><i class="fas fa-user-plus"></i> New Member</a>
+                <a href="/admin/body/productorder/" class="qa-btn"><i class="fas fa-shopping-bag"></i> All Orders</a>
+                <a href="/admin/body/admissionpayment/" class="qa-btn"><i class="fas fa-credit-card"></i> Payments</a>
+                <a href="/admin/body/product/?stock__lte=5" class="qa-btn"><i class="fas fa-truck-fast"></i> Low Stock</a>
+                <a href="/admin/body/sale/" class="qa-btn"><i class="fas fa-receipt"></i> Sales Log</a>
+                <a href="/admin/body/trainer/" class="qa-btn"><i class="fas fa-dumbbell"></i> Trainers</a>
+                <a href="/admin/body/membershipplan/" class="qa-btn"><i class="fas fa-id-card"></i> Plans</a>
+                <a href="/admin/body/galleryimage/" class="qa-btn"><i class="fas fa-images"></i> Gallery</a>
+            </div>
+        </div>
+
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-gauge-high"></i> Live Metrics</div>
+            {% for m in live_metrics %}
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+                <div style="width:36px;height:36px;border-radius:10px;background:{{ m.bg }};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                    <i class="fas fa-{{ m.icon }}" style="color:{{ m.color }};"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-weight:700;font-size:12px;">{{ m.label }}</div>
+                    <div style="font-size:10px;color:var(--text-2);">{{ m.sub }}</div>
+                </div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:{{ m.color }};">{{ m.value }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 2 — INVENTORY & VELOCITY
+════════════════════════════════ -->
+<div id="tab-inventory" class="tab-panel">
+    <div class="g21">
+        <!-- Inventory Health -->
+        <div class="card card-pad">
+            <div class="card-title">
+                <i class="fas fa-boxes-stacked"></i> Inventory Health
+                <button class="export-btn" onclick="exportTablePDF('invTable','Inventory Health')"><i class="fas fa-download"></i> PDF</button>
+                <button class="export-btn" onclick="exportTableExcel('invTable','Inventory')"><i class="fas fa-file-excel"></i> Excel</button>
+            </div>
+            <table class="ims-table" id="invTable">
+                <thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Alert At</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                {% for p in inventory_detail %}
+                <tr>
+                    <td><div style="font-weight:700;color:var(--text);">{{ p.name }}</div></td>
+                    <td><span class="badge b-info">{{ p.category }}</span></td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:60px;height:5px;background:var(--s3);border-radius:10px;overflow:hidden;">
+                                <div style="width:{{ p.pct }}%;height:100%;background:{{ p.bar_color }};border-radius:10px;"></div>
+                            </div>
+                            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:{{ p.bar_color }};">{{ p.stock }}</span>
+                        </div>
+                    </td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-2);">≤ {{ p.alert_threshold }}</td>
+                    <td>
+                        <span class="badge {% if p.stock == 0 %}b-danger{% elif p.is_alert %}b-warn{% else %}b-success{% endif %}">
+                            {% if p.stock == 0 %}OUT{% elif p.is_alert %}LOW{% else %}OK{% endif %}
+                        </span>
+                    </td>
+                    <td><a href="/admin/body/product/{{ p.id }}/change/" style="font-size:10px;font-weight:800;color:var(--text-2);text-decoration:none;letter-spacing:1px;">EDIT →</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-2);">No products.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Smart Alert Thresholds explanation -->
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-brain"></i> Smart Alert Logic</div>
+            <div style="font-size:12px;color:var(--text-2);line-height:1.8;margin-bottom:16px;">
+                Alert thresholds are calculated from each product's actual sales velocity. Fast-moving items get higher thresholds to prevent stockouts.
+            </div>
+            {% for p in velocity_items %}
+            <div class="vel-row">
+                <div class="vel-name">{{ p.name }}</div>
+                <div class="vel-track"><div class="vel-fill {{ p.speed_class }}" style="width:{{ p.vel_pct }}%;"></div></div>
+                <div class="vel-val {% if p.speed_class == 'fast' %}green{% elif p.speed_class == 'med' %}gold{% else %}{% endif %}" style="{% if p.speed_class == 'fast' %}color:var(--green){% elif p.speed_class == 'med' %}color:var(--gold){% else %}color:var(--text-2){% endif %};">{{ p.daily_avg }}/day</div>
+                <div class="vel-badge {{ p.speed_class }}">{{ p.speed_label }}</div>
+            </div>
+            {% empty %}
+            <div style="color:var(--text-2);font-size:12px;text-align:center;padding:20px;">No sales data yet.</div>
+            {% endfor %}
+            <div style="margin-top:16px;padding:12px;background:var(--s2);border-radius:var(--r-sm);font-size:11px;color:var(--text-2);line-height:1.7;">
+                <b style="color:var(--green);">Fast</b> = 5+ sales/day → alert at 10 days supply<br>
+                <b style="color:var(--gold);">Medium</b> = 1–5/day → alert at 7 days supply<br>
+                <b style="color:var(--text-2);">Slow</b> = &lt;1/day → alert at 3 units
+            </div>
+        </div>
+    </div>
+
+    <!-- Most + Least Selling -->
+    <div class="g2">
+        <div class="card card-pad">
+            <div class="card-title">
+                <i class="fas fa-fire"></i> Top Selling Products
+                <button class="export-btn" onclick="exportTableExcel('topSellingTable','Top Selling')"><i class="fas fa-file-excel"></i> Excel</button>
+            </div>
+            <table class="ims-table" id="topSellingTable">
+                <thead><tr><th>#</th><th>Product</th><th>Units Sold</th><th>Revenue</th><th>Velocity</th></tr></thead>
+                <tbody>
+                {% for p in top_selling %}
+                <tr>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:{% if forloop.counter <= 3 %}var(--gold){% else %}var(--text-2){% endif %};font-weight:900;">{{ forloop.counter }}</td>
+                    <td><div style="font-weight:700;">{{ p.name }}</div><div style="font-size:10px;color:var(--text-2);">{{ p.category }}</div></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;">{{ p.units_sold }}</td>
+                    <td style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;">₹{{ p.revenue }}</td>
+                    <td><span class="badge {% if p.speed_class == 'fast' %}b-success{% elif p.speed_class == 'med' %}b-warn{% else %}b-muted{% endif %}">{{ p.speed_label }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-2);">No sales data yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-snowflake"></i> Slow / Dead Stock</div>
+            <table class="ims-table">
+                <thead><tr><th>Product</th><th>Units Sold</th><th>Stock Left</th><th>Days Since Sale</th></tr></thead>
+                <tbody>
+                {% for p in slow_selling %}
+                <tr>
+                    <td><div style="font-weight:700;">{{ p.name }}</div></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);">{{ p.units_sold }}</td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">{{ p.stock }}</td>
+                    <td><span class="badge {% if p.days_since > 14 %}b-danger{% else %}b-warn{% endif %}">{{ p.days_since }}d ago</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-2);">All products are moving well.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 3 — CUSTOMERS
+════════════════════════════════ -->
+<div id="tab-customers" class="tab-panel">
+    <div class="g3">
+        <!-- Repeat vs One-time -->
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-rotate"></i> Repeat vs One-Time</div>
+            <div style="height:180px;"><canvas id="customerTypeChart"></canvas></div>
+            <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="background:var(--green-g);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--green);">{{ repeat_customers|default:0 }}</div>
+                    <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--text-2);text-transform:uppercase;">Repeat Buyers</div>
+                </div>
+                <div style="background:var(--blue-g);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--blue);">{{ one_time_customers|default:0 }}</div>
+                    <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--text-2);text-transform:uppercase;">One-Time Buyers</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Repeat Customers -->
+        <div class="card card-pad">
+            <div class="card-title">
+                <i class="fas fa-crown"></i> Top Repeat Customers
+                <button class="export-btn" onclick="exportTableExcel('repeatTable','Repeat Customers')"><i class="fas fa-file-excel"></i> Excel</button>
+            </div>
+            <table class="ims-table" id="repeatTable">
+                <thead><tr><th>#</th><th>Customer</th><th>Orders</th><th>Spent</th></tr></thead>
+                <tbody>
+                {% for c in top_customers %}
+                <tr>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:{% if forloop.counter == 1 %}var(--gold){% else %}var(--text-2){% endif %};font-weight:900;">{{ forloop.counter }}</td>
+                    <td>
+                        <div style="font-weight:700;">{{ c.name }}</div>
+                        <div style="font-size:10px;color:var(--text-2);">{{ c.email }}</div>
+                    </td>
+                    <td><span class="badge {% if c.order_count >= 5 %}b-success{% elif c.order_count >= 2 %}b-warn{% else %}b-muted{% endif %}">{{ c.order_count }} orders</span></td>
+                    <td style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;">₹{{ c.total_spent }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-2);">No order data yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Customer Segments -->
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-layer-group"></i> Buyer Segments</div>
+            {% for seg in buyer_segments %}
+            <div class="seg-row">
+                <div class="seg-icon" style="background:{{ seg.bg }};"><i class="fas fa-{{ seg.icon }}" style="color:{{ seg.color }};"></i></div>
+                <div class="seg-info">
+                    <div class="seg-name">{{ seg.label }}</div>
+                    <div class="seg-sub">{{ seg.desc }}</div>
+                    <div class="seg-track"><div class="seg-fill" style="width:{{ seg.pct }}%;background:{{ seg.color }};height:4px;border-radius:10px;"></div></div>
+                </div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:{{ seg.color }};font-weight:700;margin-left:10px;">{{ seg.count }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Buyer Behaviour Chart -->
+    <div class="g2">
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-chart-bar"></i> Purchase Frequency Distribution</div>
+            <div style="height:220px;"><canvas id="freqChart"></canvas></div>
+        </div>
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-person-running"></i> Buyer Lifestyle Profile</div>
+            <div style="height:220px;"><canvas id="lifestyleChart"></canvas></div>
+            <div style="margin-top:10px;font-size:11px;color:var(--text-2);">
+                Inferred from product category purchases. Gym-goers buy Supplements & Gear; Corporate buyers prefer Apparel.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 4 — GEOGRAPHY
+════════════════════════════════ -->
+<div id="tab-geography" class="tab-panel">
+    <div class="g21">
+        <div class="card card-pad">
+            <div class="card-title">
+                <i class="fas fa-map-location-dot"></i> Sales by Location
+                <button class="export-btn" onclick="exportTableExcel('geoTable','Geography')"><i class="fas fa-file-excel"></i> Excel</button>
+                <button class="export-btn" onclick="exportTablePDF('geoTable','Geography Report')"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+            <div style="font-size:11px;color:var(--text-2);margin-bottom:14px;">
+                Click any location to see detailed breakdown — products delivered, users, and revenue from that area.
+            </div>
+            <table class="ims-table" id="geoTable">
+                <thead><tr><th>Location</th><th>Orders</th><th>Revenue</th><th>Share</th><th>Top Product</th></tr></thead>
+                <tbody>
+                {% for g in geo_data %}
+                <tr onclick="showGeoDetail('{{ g.location }}','{{ g.orders }}','{{ g.revenue }}','{{ g.top_product }}','{{ g.users }}')" style="cursor:pointer;" title="Click for breakdown">
+                    <td>
+                        <div style="font-weight:700;color:var(--text);">{{ g.location }}</div>
+                        <div style="font-size:10px;color:var(--text-2);">{{ g.state }}</div>
+                    </td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;">{{ g.orders }}</td>
+                    <td style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;">₹{{ g.revenue }}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="width:50px;height:4px;background:var(--s3);border-radius:10px;overflow:hidden;">
+                                <div style="width:{{ g.pct }}%;height:100%;background:var(--gold);border-radius:10px;"></div>
+                            </div>
+                            <span style="font-size:10px;color:var(--text-2);">{{ g.pct }}%</span>
+                        </div>
+                    </td>
+                    <td style="font-size:11px;color:var(--text-2);">{{ g.top_product }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-2);">No geographic data available yet. Addresses from orders will appear here.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Geo Detail Pane -->
+            <div class="geo-detail" id="geoDetail">
+                <div class="geo-detail-title" id="geoDetailTitle">Location Breakdown</div>
+                <div id="geoDetailContent" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-pad">
+            <div class="card-title"><i class="fas fa-chart-pie"></i> Revenue by Region</div>
+            <div style="height:220px;"><canvas id="geoChart"></canvas></div>
+            <div style="margin-top:14px;" id="geoLegend"></div>
+        </div>
+    </div>
+
+    <div class="card card-pad">
+        <div class="card-title"><i class="fas fa-chart-bar"></i> Orders by City — Top 10</div>
+        <div style="height:220px;"><canvas id="geoCityChart"></canvas></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 5 — ABC ANALYSIS
+════════════════════════════════ -->
+<div id="tab-abc" class="tab-panel">
+    <div class="g2" style="margin-bottom:16px;">
+        <div class="card card-pad">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                <div style="flex:1;background:var(--green-g);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:16px;text-align:center;">
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--green);">{{ abc_counts.A|default:0 }}</div>
+                    <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--text-2);">A CLASS</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:3px;">Top 70% revenue</div>
+                </div>
+                <div style="flex:1;background:var(--gold-glow);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:16px;text-align:center;">
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold);">{{ abc_counts.B|default:0 }}</div>
+                    <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--text-2);">B CLASS</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:3px;">Next 20% revenue</div>
+                </div>
+                <div style="flex:1;background:var(--red-g);border:1px solid rgba(232,64,64,0.2);border-radius:12px;padding:16px;text-align:center;">
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--red);">{{ abc_counts.C|default:0 }}</div>
+                    <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--text-2);">C CLASS</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:3px;">Bottom 10% revenue</div>
+                </div>
+            </div>
+            <div style="height:200px;"><canvas id="abcChart"></canvas></div>
+        </div>
+
+        <div class="card card-pad">
+            <div class="card-title">
+                <i class="fas fa-ranking-star"></i> ABC Product Classification
+                <button class="export-btn" onclick="exportTableExcel('abcTable','ABC Analysis')"><i class="fas fa-file-excel"></i> Excel</button>
+            </div>
+            <table class="ims-table" id="abcTable">
+                <thead><tr><th>Class</th><th>Product</th><th>Revenue</th><th>% of Total</th><th>Cumulative</th></tr></thead>
+                <tbody>
+                {% for item in abc_items %}
+                <tr>
+                    <td><span class="badge {% if item.class == 'A' %}b-success{% elif item.class == 'B' %}b-warn{% else %}b-danger{% endif %}">{{ item.class }}</span></td>
+                    <td><div style="font-weight:700;">{{ item.name }}</div></td>
+                    <td style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:11px;">₹{{ item.revenue }}</td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-2);">{{ item.pct }}%</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="width:60px;height:4px;background:var(--s3);border-radius:10px;overflow:hidden;">
+                                <div style="width:{{ item.cumulative }}%;height:100%;background:{% if item.class == 'A' %}var(--green){% elif item.class == 'B' %}var(--gold){% else %}var(--red){% endif %};border-radius:10px;"></div>
+                            </div>
+                            <span style="font-size:10px;color:var(--text-2);">{{ item.cumulative }}%</span>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-2);">No sales data for ABC analysis yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card card-pad">
+        <div class="card-title"><i class="fas fa-lightbulb"></i> ABC Insights & Recommendations</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+            <div style="background:var(--green-g);border:1px solid rgba(34,197,94,0.15);border-radius:12px;padding:16px;">
+                <div style="font-size:11px;font-weight:800;color:var(--green);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;"><i class="fas fa-a"></i> Class A — Priority</div>
+                <div style="font-size:11px;color:var(--text-2);line-height:1.7;">These are your cash cows. Maintain high stock, never let them go out of stock. Negotiate bulk supplier deals. Focus marketing here.</div>
+            </div>
+            <div style="background:var(--gold-glow);border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:16px;">
+                <div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;"><i class="fas fa-b"></i> Class B — Monitor</div>
+                <div style="font-size:11px;color:var(--text-2);line-height:1.7;">Stable contributors. Review quarterly. Some B items can be promoted to A with the right marketing push or seasonal timing.</div>
+            </div>
+            <div style="background:var(--red-g);border:1px solid rgba(232,64,64,0.15);border-radius:12px;padding:16px;">
+                <div style="font-size:11px;font-weight:800;color:var(--red);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;"><i class="fas fa-c"></i> Class C — Review</div>
+                <div style="font-size:11px;color:var(--text-2);line-height:1.7;">Low contributors. Consider discounting to clear stock, reducing reorder quantities, or discontinuing if consistently underperforming.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 6 — ACTIVITY LOG
+════════════════════════════════ -->
+<div id="tab-activity" class="tab-panel">
+    <div class="card card-pad">
+        <div class="card-title">
+            <i class="fas fa-list-check"></i> Recent Activity Log
+            <button class="export-btn" onclick="exportTableExcel('activityTable','Activity Log')"><i class="fas fa-file-excel"></i> Excel</button>
+            <button class="export-btn" onclick="exportTablePDF('activityTable','Activity Log')"><i class="fas fa-file-pdf"></i> PDF</button>
+            <a href="/admin/body/productorder/" style="margin-left:auto;font-size:10px;font-weight:800;color:var(--text-2);text-decoration:none;letter-spacing:1px;text-transform:uppercase;">View All →</a>
+        </div>
+        <table class="ims-table" id="activityTable">
+            <thead><tr><th>Event</th><th>Reference</th><th>Customer</th><th>Amount</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            {% for order in recent_orders %}
+            <tr>
+                <td><div style="font-weight:800;color:var(--text);">Store Order</div><div style="font-size:10px;color:var(--text-2);">{{ order.product.name }}</div></td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);">#ORD-{{ order.id }}</td>
+                <td><div style="font-weight:700;">{{ order.full_name }}</div><div style="font-size:10px;color:var(--text-2);">{{ order.email }}</div></td>
+                <td style="font-weight:800;color:var(--green);font-family:'JetBrains Mono',monospace;">₹{{ order.total_amount }}</td>
+                <td style="font-size:11px;color:var(--text-2);">{{ order.created_at|timesince }} ago</td>
+                <td><span class="badge {% if order.status == 'delivered' %}b-success{% elif order.status == 'cancelled' %}b-danger{% elif order.status == 'shipped' %}b-info{% elif order.status == 'paid' %}b-success{% else %}b-warn{% endif %}">{{ order.status }}</span></td>
+                <td><a href="/admin/body/productorder/{{ order.id }}/change/" style="font-size:10px;font-weight:800;color:var(--text-2);text-decoration:none;letter-spacing:1px;">EDIT →</a></td>
+            </tr>
+            {% endfor %}
+            {% for p in recent_payments %}
+            <tr>
+                <td><div style="font-weight:800;color:var(--text);">Membership Payment</div><div style="font-size:10px;color:var(--text-2);">{{ p.admission }}</div></td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);">#TXN-{{ p.id }}</td>
+                <td><div style="font-weight:700;">{{ p.admission.first_name }} {{ p.admission.last_name }}</div><div style="font-size:10px;color:var(--text-2);">{{ p.payment_mode }}</div></td>
+                <td style="font-weight:800;color:var(--green);font-family:'JetBrains Mono',monospace;">₹{{ p.amount }}</td>
+                <td style="font-size:11px;color:var(--text-2);">{{ p.created_at|timesince }} ago</td>
+                <td><span class="badge {% if p.status == 'success' %}b-success{% elif p.status == 'failed' %}b-danger{% else %}b-warn{% endif %}">{{ p.status }}</span></td>
+                <td><a href="/admin/body/admissionpayment/{{ p.id }}/change/" style="font-size:10px;font-weight:800;color:var(--text-2);text-decoration:none;letter-spacing:1px;">EDIT →</a></td>
+            </tr>
+            {% endfor %}
+            {% if not recent_orders and not recent_payments %}
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-2);">No recent activity.</td></tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</div><!-- /ims-shell -->
+
+<script>
+/* ════════════════════════════════════════════════
+   GYM-SHIM IMS — FULL DASHBOARD ENGINE v4.0
+════════════════════════════════════════════════ */
+
+// ── Clock ──
+function tick(){document.getElementById('clock').textContent=new Date().toLocaleString('en-IN',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+tick(); setInterval(tick,1000);
+document.getElementById('tickerTime').textContent = new Date().toLocaleTimeString('en-IN');
+
+// ── Smart Ticker ──
+(function(){
+    const inv = {{ inventory_json|default:"[]"|safe }};
+    const alerts = inv.filter(p=>p.is_alert||p.stock===0);
+    const el = document.getElementById('tickerTxt');
+    if(!alerts.length){el.textContent='✅ All inventory levels are healthy. No alerts at this time.';el.style.animation='none';return;}
+    el.textContent = alerts.map(p=>p.stock===0?`🔴 ${p.name} — OUT OF STOCK  ·  `:
+        `🟡 ${p.name} — Only ${p.stock} left (alert threshold: ≤${p.alert_threshold})  ·  `).join('');
+})();
+
+// ── Tab switching ──
+function showTab(id,btn){
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    btn.classList.add('active');
+}
+
+// ── Chart defaults ──
+Chart.defaults.color='#555';
+Chart.defaults.font.family="'Plus Jakarta Sans',sans-serif";
+
+// ── Sparkline helper ──
+function spark(id,data,color){
+    const c=document.getElementById(id);if(!c)return;
+    new Chart(c,{type:'line',data:{labels:data.map((_,i)=>i),datasets:[{data,borderColor:color,borderWidth:1.5,fill:true,backgroundColor:color+'22',tension:0.4,pointRadius:0}]},
+    options:{responsive:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}},animation:false}});
+}
+const wR = {{ weekly_revenue|default:"[0,0,0,0,0,0,0]"|safe }};
+const wP = wR.map(v=>Math.round(v*0.9));
+const wL = wR.map(v=>Math.round(v*0.1));
+spark('sk1',wR,'#C9A84C');spark('sk2',wP,'#22c55e');spark('sk3',wL,'#e84040');
+spark('sk4',[1,2,3,4,3,5,{{ total_members|default:0 }}],'#3b82f6');
+spark('sk5',[2,3,4,5,4,6,{{ total_orders|default:0 }}],'#a855f7');
+
+// ── Main chart ──
+let mainChartObj;
+function initMain(type){
+    const ctx=document.getElementById('mainChart');if(!ctx)return;
+    if(mainChartObj)mainChartObj.destroy();
+    mainChartObj=new Chart(ctx,{
+        type:type==='radar'?'radar':type,
+        data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[
+            {label:'Revenue (₹)',data:wR,backgroundColor:type==='line'?'rgba(201,168,76,0.08)':'#C9A84C',borderColor:'#C9A84C',fill:type==='line',tension:0.4,borderRadius:type==='bar'?8:0,borderWidth:type==='line'?2:0,pointBackgroundColor:'#C9A84C',pointRadius:type==='line'?4:0},
+            {label:'Expenses (₹)',data:wL,backgroundColor:type==='line'?'transparent':'#e84040',borderColor:'#e84040',borderDash:type==='line'?[4,4]:[],fill:false,borderRadius:type==='bar'?8:0,borderWidth:type==='line'?1.5:0,pointBackgroundColor:'#e84040',pointRadius:type==='line'?3:0}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+            plugins:{legend:{labels:{color:'#666',font:{weight:'700',size:11}}},tooltip:{backgroundColor:'#111',borderColor:'#333',borderWidth:1,titleColor:'#C9A84C',bodyColor:'#aaa'}},
+            scales:type==='radar'?{r:{grid:{color:'#1a1a1a'},ticks:{display:false},pointLabels:{color:'#666'}}}:{y:{grid:{color:'#111'},ticks:{color:'#444'},beginAtZero:true},x:{grid:{display:false},ticks:{color:'#444'}}}
+        }
+    });
+}
+function switchMain(t,btn){document.querySelectorAll('.tab-panel.active .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');initMain(t);}
+initMain('bar');
+
+// ── Donut ──
+(function(){
+    const ctx=document.getElementById('donutChart');if(!ctx)return;
+    const d={{ donut_data|default:"[1,1,1]"|safe }};
+    new Chart(ctx,{type:'doughnut',data:{labels:['Membership','Store','Loss'],datasets:[{data:d,backgroundColor:['#C9A84C','#22c55e','#e84040'],borderWidth:0,cutout:'78%',hoverOffset:10}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#111',borderColor:'#333',borderWidth:1}}}});
+})();
+
+// ── Customer Type Chart ──
+(function(){
+    const ctx=document.getElementById('customerTypeChart');if(!ctx)return;
+    new Chart(ctx,{type:'doughnut',data:{labels:['Repeat','One-Time'],datasets:[{data:[{{ repeat_customers|default:1 }},{{ one_time_customers|default:1 }}],backgroundColor:['#22c55e','#3b82f6'],borderWidth:0,cutout:'72%'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#666',font:{size:11}}}}}});
+})();
+
+// ── Frequency Distribution ──
+(function(){
+    const ctx=document.getElementById('freqChart');if(!ctx)return;
+    const fd = {{ freq_data|default:"{'labels':['1','2','3','4','5+'],'data':[0,0,0,0,0]}"|safe }};
+    new Chart(ctx,{type:'bar',data:{labels:fd.labels,datasets:[{label:'Customers',data:fd.data,backgroundColor:'#3b82f6',borderRadius:8,barThickness:28}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#111'},ticks:{color:'#444'},beginAtZero:true},x:{grid:{display:false},ticks:{color:'#444'}}}}});
+})();
+
+// ── Lifestyle Chart ──
+(function(){
+    const ctx=document.getElementById('lifestyleChart');if(!ctx)return;
+    const ls = {{ lifestyle_data|default:"{'labels':['Gym Goers','Corporate','Casual','Athletes'],'data':[0,0,0,0]}"|safe }};
+    new Chart(ctx,{type:'polarArea',data:{labels:ls.labels,datasets:[{data:ls.data,backgroundColor:['rgba(34,197,94,0.6)','rgba(59,130,246,0.6)','rgba(201,168,76,0.6)','rgba(168,85,247,0.6)'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#666',font:{size:10}}}},scales:{r:{grid:{color:'#1a1a1a'},ticks:{display:false}}}}});
+})();
+
+// ── ABC Chart ──
+(function(){
+    const ctx=document.getElementById('abcChart');if(!ctx)return;
+    const ab = {{ abc_chart_data|default:"{'labels':[],'revenue':[],'classes':[]}" |safe }};
+    const colors = ab.classes.map(c=>c==='A'?'#22c55e':c==='B'?'#C9A84C':'#e84040');
+    new Chart(ctx,{type:'bar',data:{labels:ab.labels,datasets:[{data:ab.revenue,backgroundColor:colors,borderRadius:6,barThickness:20}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#111'},ticks:{color:'#444'},beginAtZero:true},x:{grid:{display:false},ticks:{color:'#444',font:{size:9}},maxRotation:45}}}});
+})();
+
+// ── Geo Charts ──
+(function(){
+    const gd = {{ geo_chart_data|default:"{'labels':[],'revenues':[],'orders':[]}" |safe }};
+    if(!gd.labels.length)return;
+    const colors=['#C9A84C','#22c55e','#3b82f6','#e84040','#a855f7','#fb923c','#2dd4bf','#f87171','#60a5fa','#34d399'];
+
+    const pc=document.getElementById('geoChart');
+    if(pc) new Chart(pc,{type:'doughnut',data:{labels:gd.labels,datasets:[{data:gd.revenues,backgroundColor:colors.slice(0,gd.labels.length),borderWidth:0,cutout:'65%'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},tooltip:{backgroundColor:'#111',borderColor:'#333',borderWidth:1}}});
+
+    const lg=document.getElementById('geoLegend');
+    if(lg) lg.innerHTML=gd.labels.slice(0,5).map((l,i)=>`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:11px;"><div style="width:8px;height:8px;border-radius:2px;background:${colors[i]};"></div><span style="flex:1;color:var(--text-2);">${l}</span><span style="font-family:monospace;font-size:10px;color:var(--text);">₹${gd.revenues[i]}</span></div>`).join('');
+
+    const cc=document.getElementById('geoCityChart');
+    if(cc) new Chart(cc,{type:'bar',data:{labels:gd.labels,datasets:[{label:'Orders',data:gd.orders,backgroundColor:'#C9A84C',borderRadius:6,barThickness:24}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#111'},ticks:{color:'#444'},beginAtZero:true},x:{grid:{display:false},ticks:{color:'#444',font:{size:10}},maxRotation:40}}}});
+})();
+
+// ── Geo Detail Pane ──
+function showGeoDetail(loc,orders,rev,topProd,users){
+    const d=document.getElementById('geoDetail');
+    document.getElementById('geoDetailTitle').textContent=`📍 ${loc} — Breakdown`;
+    document.getElementById('geoDetailContent').innerHTML=`
+        <div style="background:var(--s3);border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--gold);">${orders}</div>
+            <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--text-2);text-transform:uppercase;">Total Orders</div>
+        </div>
+        <div style="background:var(--s3);border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--green);">₹${rev}</div>
+            <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--text-2);text-transform:uppercase;">Revenue Generated</div>
+        </div>
+        <div style="background:var(--s3);border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-size:12px;font-weight:800;color:var(--text);margin-top:4px;">${topProd}</div>
+            <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--text-2);text-transform:uppercase;">Top Product</div>
+        </div>`;
+    d.classList.toggle('show');
+}
+
+// ── Export helpers ──
+function exportChart(id,name){
+    const c=document.getElementById(id);if(!c)return;
+    const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=`gymshim_${name}.png`;a.click();
+}
+
+function exportTableExcel(tableId,sheetName){
+    const tbl=document.getElementById(tableId);if(!tbl)return;
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.table_to_sheet(tbl);
+    XLSX.utils.book_append_sheet(wb,ws,sheetName||'Sheet1');
+    XLSX.writeFile(wb,`gymshim_${sheetName||tableId}.xlsx`);
+}
+
+function exportTablePDF(tableId,title){
+    const tbl=document.getElementById(tableId);if(!tbl)return;
+    const win=window.open('','_blank');
+    const rows=Array.from(tbl.querySelectorAll('tr')).map(r=>
+        '<tr>'+Array.from(r.querySelectorAll('th,td')).map(c=>`<${c.tagName.toLowerCase()} style="border:1px solid #ccc;padding:6px 10px;font-size:11px;">${c.innerText}</${c.tagName.toLowerCase()}>`).join('')+'</tr>').join('');
+    win.document.write(`<!DOCTYPE html><html><head><title>${title}</title>
+    <style>body{font-family:sans-serif;padding:20px;}h2{color:#C9A84C;margin-bottom:16px;}table{border-collapse:collapse;width:100%;font-size:11px;}th{background:#C9A84C;color:#000;padding:7px 10px;text-align:left;}tr:nth-child(even){background:#f9f9f9;}</style>
+    </head><body><h2>GYM-SHIM · ${title}</h2><p style="font-size:11px;color:#888;">Generated: ${new Date().toLocaleString('en-IN')}</p><table>${rows}</table></body></html>`);
+    win.document.close();
+    setTimeout(()=>{win.print();},400);
+}
+
+function exportFullPDF(){
+    const win=window.open('','_blank');
+    win.document.write(`<!DOCTYPE html><html><head><title>GYM-SHIM Full Report</title>
+    <style>body{font-family:sans-serif;padding:24px;}h1{color:#C9A84C;}h3{margin-top:24px;border-bottom:2px solid #C9A84C;padding-bottom:6px;}table{border-collapse:collapse;width:100%;margin-top:10px;font-size:11px;}th{background:#C9A84C;color:#000;padding:7px;text-align:left;}td{border:1px solid #ddd;padding:6px 8px;}tr:nth-child(even){background:#f9f9f9;}.kpi{display:inline-block;margin:8px;padding:12px 20px;background:#f5f5f5;border-left:4px solid #C9A84C;border-radius:4px;}</style>
+    </head><body>
+    <h1>GYM-SHIM · Full IMS Report</h1>
+    <p style="color:#888;font-size:11px;">Generated: ${new Date().toLocaleString('en-IN')}</p>
+    <div class="kpi"><b>Revenue:</b> ₹{{ total_revenue|default:0 }}</div>
+    <div class="kpi"><b>Net Profit:</b> ₹{{ net_profit|default:0 }}</div>
+    <div class="kpi"><b>Members:</b> {{ total_members|default:0 }}</div>
+    <div class="kpi"><b>Orders:</b> {{ total_orders|default:0 }}</div>
+    ${['invTable','activityTable','abcTable','geoTable'].map(id=>{const t=document.getElementById(id);return t?`<h3>${id.replace('Table','').toUpperCase()}</h3>`+t.outerHTML:'';}).join('')}
+    </body></html>`);
+    win.document.close();
+    setTimeout(()=>{win.print();},500);
+}
+
+function exportFullExcel(){
+    const wb=XLSX.utils.book_new();
+    ['invTable','activityTable','abcTable','geoTable'].forEach(id=>{
+        const t=document.getElementById(id);
+        if(t){const ws=XLSX.utils.table_to_sheet(t);XLSX.utils.book_append_sheet(wb,ws,id.replace('Table',''));}
+    });
+    XLSX.writeFile(wb,'GymShim_Full_Report.xlsx');
+}
+</script>
+{% endblock %}
