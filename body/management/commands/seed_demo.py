@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 
 from body.models import (
     MembershipPlan, Admission, AdmissionPayment, 
-    Product, Sale, ProductOrder, UserAddress
+    Product, Sale, ProductOrder, UserAddress, Trainer
 )
 
 class Command(BaseCommand):
@@ -18,6 +18,11 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING("Starting demo database seeding execution..."))
 
         now = timezone.now()
+
+        # 0. Ensure Admin User 'yuv' exists
+        if not User.objects.filter(username='yuv').exists():
+            User.objects.create_superuser('yuv', 'yuvrajprajapati5665@gmail.com', 'yuvraj5678')
+            self.stdout.write(self.style.SUCCESS("Admin user 'yuv' created successfully!"))
 
         # 1. Base Pools
         products_data = [
@@ -253,5 +258,44 @@ class Command(BaseCommand):
                     quantity=1
                 )
                 Sale.objects.filter(id=sale.id).update(timestamp=r['datetime'])
+
+        # 8. Commit Trainers
+        self.stdout.write("Populating Trainers table...")
+        Trainer.objects.all().delete()
+        trainers_data = [
+            {
+                "name": "Marcus Vance",
+                "specialization": "Strength & Conditioning / Powerlifting",
+                "bio_short": "Former powerlifting champion with 10+ years coaching elite athletes.",
+                "bio_full": "Marcus specializes in mechanical optimization for squat, bench, and deadlift. He has trained national-level lifters and focuses on building robust lifting foundations.",
+                "image_url": "https://images.unsplash.com/photo-1567013127542-490d757e51fc?auto=format&fit=crop&w=400&q=80",
+                "order": 1
+            },
+            {
+                "name": "Elena Rostova",
+                "specialization": "Kinesiology / Mobility & Hypertrophy",
+                "bio_short": "Certified Kinesiologist specializing in range-of-motion development.",
+                "bio_full": "Elena combines scientific principles of movement with aesthetic training models to deliver safe, effective hypertrophy and rehabilitation programs.",
+                "image_url": "https://images.unsplash.com/photo-1548690312-e3b507d8c110?auto=format&fit=crop&w=400&q=80",
+                "order": 2
+            },
+            {
+                "name": "David Cho",
+                "specialization": "Olympic Lifting / Functional Fitness",
+                "bio_short": "Olympic weightlifter specializing in explosive power development.",
+                "bio_full": "David focuses on clean, jerk, and snatch progression. He coaches athletes to improve core stability, kinetic chain coordination, and maximum vertical power.",
+                "image_url": "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=400&q=80",
+                "order": 3
+            }
+        ]
+        for t in trainers_data:
+            Trainer.objects.create(
+                name=t["name"],
+                specialization=t["specialization"],
+                bio_short=t["bio_short"],
+                bio_full=t["bio_full"],
+                image_url=t["image_url"],
+                order=t["order"]
+            )
 
         self.stdout.write(self.style.SUCCESS("[OK] Database Seeding Completed Successfully! All charts configured with defensible live data."))
