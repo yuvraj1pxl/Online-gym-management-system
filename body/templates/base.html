@@ -5,10 +5,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>{% block title %}GYM-SHIM | The Future of Fitness{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'body/img/favicon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'body/img/favicon.png' %}">
 
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 
   <style>
     .nav-right-actions {
@@ -56,47 +58,28 @@
       min-height: 100vh;
     }
 
-    /* BACKGROUND VIDEO */
-    .hero-video-container {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100vh;
-      z-index: -2;
-      overflow: hidden;
-    }
-    .hero-video-container video {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      opacity: 0.4;
-    }
-
-    .overlay-vignette {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at top, rgba(0,0,0,0) 0%, var(--bg) 95%);
-      z-index: -1;
-      pointer-events: none;
-    }
+    /* BG VIDEO — only injected by home page via block */
 
     /* SLIM GLASS NAV */
+    @keyframes navSlideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .site-nav {
       position: fixed;
       top: 0; left: 0;
       width: 100%;
       height: var(--nav-h);
-      z-index: 9999; /* HIGHEST Z-INDEX */
+      z-index: 9999;
       background-color: var(--glass-base); 
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--glass-border);
-      transition: 0.4s ease;
+      transition: background-color 0.3s ease, height 0.3s ease;
       display: flex;
       align-items: center;
     }
 
     .site-nav.scrolled {
       background-color: var(--glass-scrolled);
-      height: 60px; /* Gets even slimmer on scroll */
+      height: 60px;
     }
 
     .site-nav .wrap {
@@ -193,17 +176,173 @@
       border-top: 1px solid var(--glass-border);
       background: #000;
     }
+
+    /* ─── STICKY CONTACT BAR ─── */
+    .sticky-contact-bar {
+      position: fixed;
+      right: 20px;
+      top: 55%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 10002;
+    }
+    
+    .sticky-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff !important;
+      font-size: 1.45rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+      transition: all 0.35s cubic-bezier(0.19, 1, 0.22, 1);
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .sticky-btn:hover {
+      transform: scale(1.12) translateX(-4px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    }
+    
+    .sticky-btn .tooltip {
+      position: absolute;
+      right: 68px;
+      background: rgba(10, 10, 10, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #fff;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.3s;
+      white-space: nowrap;
+    }
+    
+    .sticky-btn:hover .tooltip {
+      opacity: 1;
+      transform: translateX(-4px);
+    }
+    
+    .sticky-btn.support {
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      box-shadow: 0 8px 24px rgba(225, 29, 72, 0.35);
+    }
+    .sticky-btn.whatsapp {
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
+    }
+    .sticky-btn.brochure {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      box-shadow: 0 8px 24px rgba(29, 78, 216, 0.35);
+    }
+    
+    @media (max-width: 768px) {
+      .sticky-contact-bar {
+        right: 16px;
+        bottom: 24px;
+        top: auto;
+        transform: none;
+        gap: 10px;
+      }
+      .sticky-btn {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        font-size: 1.25rem;
+      }
+      .sticky-btn:hover {
+        transform: scale(1.06);
+      }
+      .sticky-btn .tooltip {
+        display: none;
+      }
+      .sticky-contact-bar {
+        bottom: 84px !important;
+        top: auto !important;
+        transform: none !important;
+      }
+      body {
+        padding-bottom: 64px !important;
+      }
+      footer {
+        padding-bottom: 94px !important;
+      }
+    }
+
+    /* ─── MOBILE BOTTOM NAV ─── */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 64px;
+      background: rgba(8, 8, 8, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 10000;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 10px;
+    }
+    
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted) !important;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      gap: 4px;
+      flex: 1;
+      height: 100%;
+      transition: color 0.3s;
+    }
+    
+    .mobile-nav-item svg {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.3s ease;
+    }
+    
+    .mobile-nav-item.active {
+      color: var(--accent) !important;
+    }
+    
+    .mobile-nav-item:hover svg {
+      transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+      .mobile-bottom-nav {
+        display: flex;
+      }
+    }
+    
+    /* ─── GLOBAL ALERTS ─── */
+    .global-alert.alert-success { background: rgba(0, 204, 102, 0.08); border-color: rgba(0, 204, 102, 0.25); color: #00cc66; }
+    .global-alert.alert-error { background: rgba(255, 51, 51, 0.08); border-color: rgba(255, 51, 51, 0.25); color: #ff3333; }
+    .global-alert.alert-info { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.25); color: #3b82f6; }
+    @keyframes alertFadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 
-  <div class="hero-video-container">
-    <video autoplay muted loop playsinline>
-      <source src="{% static 'body/videos/gym_bg.mp4' %}" type="video/mp4">
-    </video>
-  </div>
-  <div class="overlay-vignette"></div>
+  {% block bg_video %}{% endblock %}
 
  <nav class="site-nav">
   <div class="wrap">
@@ -215,9 +354,15 @@
     </div>
 
     <div style="display: flex; align-items: center; gap: 20px;">
-      <a href="{% url 'body:profile' %}" class="mobile-profile-trigger">
-        <i class="fas fa-user-circle"></i>
+      {% if user.is_authenticated %}
+      <a href="{% url 'body:profile' %}" class="mobile-profile-trigger" aria-label="Profile">
+        <i class="fas fa-user-circle" style="color:#C9A84C;"></i>
       </a>
+      {% else %}
+      <button class="mobile-profile-trigger" onclick="openAuthModal()" aria-label="Login" style="background:none;border:none;cursor:pointer;">
+        <i class="fas fa-user-circle"></i>
+      </button>
+      {% endif %}
 
       <div class="nav-links" id="mobileMenu">
         <a href="{% url 'body:home' %}">Home</a>
@@ -226,7 +371,11 @@
         <a href="{% url 'body:trainers' %}">Trainers</a>
         <a href="{% url 'body:gallery' %}">Gallery</a>
         <a href="{% url 'body:contact' %}">Contact</a>
+        {% if user.is_authenticated %}
         <a href="{% url 'body:profile' %}" class="desktop-only">Profile</a>
+        {% else %}
+        <button class="desktop-only" onclick="openAuthModal()" style="background:none;border:none;cursor:pointer;font-size:0.8rem;font-weight:600;text-transform:uppercase;color:#fff;opacity:0.7;transition:0.3s;font-family:'Poppins',sans-serif;" onmouseover="this.style.opacity='1';this.style.color='#ffb400'" onmouseout="this.style.opacity='0.7';this.style.color='#fff'">Login</button>
+        {% endif %}
         <a href="{% url 'body:admission_form' %}" class="btn-join">Join Now</a>
       </div>
 
@@ -238,6 +387,17 @@
 </nav>
 
   <main id="main">
+      {% if messages %}
+      <div class="messages-container" style="max-width: 1400px; margin: 20px auto 0; padding: 0 30px; position: relative; z-index: 10006;">
+          {% for message in messages %}
+          <div class="global-alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' or message.tags == 'danger' %}alert-error{% else %}alert-info{% endif %}" style="padding: 14px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; border: 1px solid; animation: alertFadeIn 0.3s ease forwards;">
+              <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+              <span>{{ message }}</span>
+              <button onclick="this.parentElement.remove()" style="margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; font-size: 16px; line-height: 1;">&times;</button>
+          </div>
+          {% endfor %}
+      </div>
+      {% endif %}
       {% block content %}{% endblock %}
   </main>
 
@@ -245,7 +405,65 @@
       <p>&copy; 2026 GYM-SHIM — Strength · Discipline · Transformation.</p>
   </footer>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- ══ STICKY FLOATING CONTACT BAR ══ -->
+  <div class="sticky-contact-bar" role="complementary" aria-label="Floating support shortcuts">
+    <a href="{% url 'body:contact' %}" class="sticky-btn support" aria-label="Contact Support">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+      <span class="tooltip">Contact Support</span>
+    </a>
+    <a href="https://wa.me/919XXXXXXXXX?text=Hello%2C%20I%27d%20like%20to%20know%20more%20about%20GYM-SHIM" 
+       class="sticky-btn whatsapp" 
+       target="_blank" rel="noopener noreferrer" 
+       aria-label="Chat on WhatsApp">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="svg-icon"><path d="M12.031 6.172c-2.32 0-4.53 1.002-6.086 2.747-1.558 1.748-2.19 4.093-1.733 6.43.433 2.21 1.733 4.137 3.659 5.43l-.707 2.585 2.658-.696c1.196.65 2.54 1.002 3.914 1.002 4.675 0 8.48-3.79 8.48-8.483 0-2.288-.89-4.44-2.508-6.059-1.62-1.616-3.77-2.506-6.077-2.506zm5.074 11.233c-.22.613-1.284 1.135-1.782 1.18-.456.04-1.04.067-1.67-.133-.393-.127-.893-.323-1.523-.594-2.673-1.15-4.4-3.864-4.533-4.04-.132-.178-1.085-1.442-1.085-2.756 0-1.314.685-1.96.93-2.222.247-.26.54-.326.72-.326h.51c.16 0 .373-.06.58.423.22.52.748 1.83.81 1.96.06.13.107.28.013.47-.093.19-.14.31-.28.47l-.373.43c-.114.127-.247.267-.107.51.14.24.62 1.025 1.33 1.657.913.812 1.68 1.063 1.92 1.18.24.12.38.1.52-.06.14-.16.6-1.127.76-1.517.16-.39.32-.326.54-.246.22.08 1.4.66 1.64.78.24.12.4.18.46.28.06.1.06.58-.16 1.193z"/></svg>
+      <span class="tooltip">WhatsApp Chat</span>
+    </a>
+    <a href="{% url 'body:plans' %}" class="sticky-btn brochure" aria-label="Gym Brochure">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      <span class="tooltip">Gym Brochure</span>
+    </a>
+  </div>
+
+  <!-- ══ MOBILE STICKY BOTTOM NAV ══ -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation bar">
+    <a href="{% url 'body:home' %}" class="mobile-nav-item {% if request.resolver_match.view_name == 'body:home' or request.path == '/' %}active{% endif %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <span>Home</span>
+    </a>
+    <a href="{% url 'body:shop' %}" class="mobile-nav-item {% if 'shop' in request.path %}active{% endif %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+      <span>Store</span>
+    </a>
+    <a href="{% url 'body:plans' %}" class="mobile-nav-item {% if 'plans' in request.path %}active{% endif %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+      <span>Plans</span>
+    </a>
+    <a href="{% url 'body:trainers' %}" class="mobile-nav-item {% if 'trainers' in request.path %}active{% endif %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      <span>Coaches</span>
+    </a>
+    {% if user.is_authenticated %}
+    <a href="{% url 'body:profile' %}" class="mobile-nav-item {% if 'profile' in request.path %}active{% endif %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <span>Profile</span>
+    </a>
+    {% else %}
+    <button class="mobile-nav-item" onclick="openAuthModal()" style="border:none;background:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <span>Login</span>
+    </button>
+    {% endif %}
+  </nav>
+
+  {% block extra_scripts %}{% endblock %}
+  <script>
+    // Global auth modal opener — pages can override this
+    function openAuthModal() {
+      // Default: navigate to profile page (which shows auth gate)
+      window.location.href = '{% url "body:profile" %}';
+    }
+    window.openAuthModal = openAuthModal;
+  </script>
   <script>
     // Navbar Scroll Logic
     window.addEventListener('scroll', () => {
@@ -267,8 +485,8 @@
       spans[2].style.transform = navLinks.classList.contains('active') ? 'rotate(-45deg) translate(5px, -5px)' : 'none';
     });
 
-    // GSAP Intro
-    gsap.from(".site-nav", { y: -100, opacity: 0, duration: 1.2, ease: "power4.out" });
+    // Nav entrance — pure CSS, no GSAP needed
+    document.querySelector('.site-nav').style.animation = 'navSlideIn 0.6s ease forwards';
   </script>
   {% block scripts %}{% endblock %}
 </body>

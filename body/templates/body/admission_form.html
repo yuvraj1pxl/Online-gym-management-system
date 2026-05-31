@@ -11,7 +11,6 @@
 {% block title %}Join Gym-SHIM — Admission{% endblock %}
 
 {% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <meta name="description" content="Join Gym-SHIM — admission form and membership selection">
 {% endblock %}
 
@@ -105,7 +104,7 @@
 </style>
 
 <div class="video-bg-wrapper" aria-hidden="true">
-  <video class="bg-video" autoplay muted loop playsinline>
+  <video class="bg-video" autoplay muted loop playsinline preload="none" poster="{% static 'body/img/img2.jpeg' %}">
     <source src="{% static 'body/video/form_bg.mp4' %}" type="video/mp4">
   </video>
   <div class="overlay"></div>

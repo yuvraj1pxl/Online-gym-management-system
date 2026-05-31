@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block content %}
+{% block extra_head %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
 
 <style>
     /* ═══════════════════════════════════════════
@@ -242,7 +244,7 @@
     .prod-name {
         font-size: 1.05rem; font-weight: 700; color: #fff;
         margin-bottom: 8px; line-height: 1.4;
-        display: -webkit-box; -webkit-line-clamp: 2;
+        display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
         -webkit-box-orient: vertical; overflow: hidden;
     }
     .rating-row {
@@ -294,7 +296,7 @@
     .detail-back-bar {
         position: sticky; top: 0; z-index: 100;
         background: rgba(5,5,5,0.92);
-        backdrop-filter: blur(16px);
+        backdrop-filter: blur(6px);
         border-bottom: 1px solid var(--border-dim);
         padding: 14px 40px;
         display: flex; align-items: center; gap: 16px;

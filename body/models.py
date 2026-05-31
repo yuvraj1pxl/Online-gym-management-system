@@ -229,6 +229,21 @@ class UserAddress(models.Model):   # ← correct: top-level, not indented
         return f"{self.full_name} — {self.city}"
 
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    profile_image = models.ImageField(upload_to='profiles/photos/%Y/%m/%d/', blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, default='')
+
+    def __str__(self):
+        return f"Profile of {self.user.username}"
+
+
+# Monkey-patch User.profile_image and User.phone to return from UserProfile
+User.profile_image = property(lambda self: UserProfile.objects.get_or_create(user=self)[0].profile_image)
+User.phone = property(lambda self: UserProfile.objects.get_or_create(user=self)[0].phone)
+
+
+
 # -------------------------
 # SIGNALS
 # -------------------------

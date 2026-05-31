@@ -22,6 +22,7 @@ urlpatterns = [
     # --- Elite E-commerce / Shop Flow ---
     path('shop/', views.shop, name='shop'),
     path('shop/checkout/<int:product_id>/', views.checkout, name='checkout'),
+    path('shop/confirm-payment/<int:order_id>/', views.confirm_order_payment, name='confirm_order_payment'),
 
     # --- Admission & Payment System ---
     path('admission/', views.admission_form, name='admission_form'),
@@ -35,5 +36,7 @@ path('profile/address/delete/<int:addr_id>/', views.delete_address, name='delete
 path('profile/address/set-default/<int:addr_id>/', views.set_default_address, name='set_default_address'),
 path('profile/change-password/', views.change_password, name='change_password'),
    path('profile/feedback/', views.submit_feedback, name='submit_feedback'),
+
+   path('admin/dashboard/', views.admin_dashboard_view, name='admin_dashboard'),
 
 ]

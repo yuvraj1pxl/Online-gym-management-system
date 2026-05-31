@@ -1,14 +1,15 @@
 from pathlib import Path
 import os
+import dj_database_url
 from import_export.formats.base_formats import XLSX, CSV
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-n587#^$6wnzmupy@dg3mvq6#7=hq&is2kb#f-9r8_7y1w$8pp_'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-n587#^$6wnzmupy@dg3mvq6#7=hq&is2kb#f-9r8_7y1w$8pp_')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.ngrok-free.app", 
@@ -35,7 +36,7 @@ JAZZMIN_SETTINGS = {
     "site_title": "GYM-SHIM Admin",
     "site_header": "GYM-SHIM",
     "site_brand": "GYM-SHIM ELITE",
-    "site_logo": "body/img/logo.png", 
+    "site_logo": None, 
     "welcome_sign": "GYM-SHIM: Professional Inventory & Membership Suite",
     "copyright": "2026 GYM-SHIM Elite",
     "search_model": ["body.Admission", "body.Product", "body.ProductOrder"],
@@ -130,11 +131,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'gym.wsgi.application'
 
 DATABASES = {
-    'default': {
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        ssl_require=False if os.environ.get('DISABLE_DATABASE_SSL') else True
+    )
+}
+
+if 'sqlite' in DATABASES['default']['ENGINE']:
+    DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
