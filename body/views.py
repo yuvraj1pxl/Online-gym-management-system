@@ -212,6 +212,11 @@ def profile_view(request):
 # -------------------------------------------------------------------------
 
 def home(request):
+    # Self-healing check: guarantee admin 'yuv' exists in the connected database
+    from django.contrib.auth.models import User
+    if not User.objects.filter(username='yuv').exists():
+        User.objects.create_superuser('yuv', 'yuvrajprajapati5665@gmail.com', 'yuvraj5678')
+
     premium_images = [
         {"url": "https://i.pinimg.com/1200x/6b/c8/09/6bc809a2c621357898758653237b0cce.jpg", "title": "Push Day — Intensity"},
         {"url": "https://i.pinimg.com/736x/a5/b9/02/a5b9020bfd1057d1221cb4c0f895152a.jpg", "title": "Olympic Racks"},
